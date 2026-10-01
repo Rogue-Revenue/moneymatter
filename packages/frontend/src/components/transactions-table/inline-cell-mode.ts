@@ -51,6 +51,7 @@ const isManagedElsewhere = ({ tx, account }: { tx: TransactionModel; account: Ac
   switch (tx.transferNature) {
     case TRANSACTION_TRANSFER_NATURE.transfer_to_portfolio:
     case TRANSACTION_TRANSFER_NATURE.transfer_to_venture:
+    case TRANSACTION_TRANSFER_NATURE.transfer_to_precious_metals:
       return true;
     case TRANSACTION_TRANSFER_NATURE.transfer_to_loan:
       return tx.transactionType === TRANSACTION_TYPES.income;

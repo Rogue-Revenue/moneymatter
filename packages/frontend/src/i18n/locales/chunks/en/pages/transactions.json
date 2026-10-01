@@ -78,7 +78,8 @@
         "outOfWallet": "Out of wallet",
         "toPortfolio": "To portfolio",
         "toVenture": "To venture",
-        "selectedCount": "{n} selected"
+        "selectedCount": "{n} selected",
+        "toPreciousMetals": "To precious metals"
       }
     },
     "list": {

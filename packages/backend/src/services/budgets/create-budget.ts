@@ -1,4 +1,4 @@
-import { BUDGET_STATUSES, BUDGET_TYPES } from '@bt/shared/types';
+import { BUDGET_STATUSES, BUDGET_TYPES, TRANSACTION_TRANSFER_NATURE } from '@bt/shared/types';
 import { Money } from '@common/types/money';
 import { t } from '@i18n/index';
 import { ValidationError } from '@js/errors';
@@ -91,11 +91,14 @@ export const createBudget = withTransaction(async (payload: CreateBudgetPayload)
       balanceAdjustments: 'include',
       completeness: 'all',
       where: {
+        transferNature: { [Op.ne]: TRANSACTION_TRANSFER_NATURE.transfer_to_precious_metals },
         time: {
           [Op.between]: [transactionFilters.startDate, transactionFilters.endDate],
         },
       },
       attributes: ['id'],
+      order: [['id', 'ASC']],
+      lock: true,
     });
 
     if (transactions.length) {

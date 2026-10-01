@@ -82,6 +82,10 @@
             <BriefcaseIcon :size="13" class="text-app-transfer-color shrink-0" />
             <span class="max-w-36 truncate">{{ portfolioName }}</span>
           </template>
+          <template v-else-if="isPreciousMetalsLinked">
+            <span class="shrink-0 opacity-60">{{ tx.transactionType === TRANSACTION_TYPES.expense ? '→' : '←' }}</span>
+            <span class="max-w-36 truncate">{{ $t('navigation.preciousMetals') }}</span>
+          </template>
         </div>
       </template>
 
@@ -347,8 +351,12 @@ const isOutOfWalletTransfer = computed(
   () => props.tx.transferNature === TRANSACTION_TRANSFER_NATURE.transfer_out_wallet,
 );
 const isPortfolioLinked = computed(() => props.tx.transferNature === TRANSACTION_TRANSFER_NATURE.transfer_to_portfolio);
+const isPreciousMetalsLinked = computed(
+  () => props.tx.transferNature === TRANSACTION_TRANSFER_NATURE.transfer_to_precious_metals,
+);
 const isTransferRow = computed(
-  () => isTwoLegTransferRow.value || isOutOfWalletTransfer.value || isPortfolioLinked.value,
+  () =>
+    isTwoLegTransferRow.value || isOutOfWalletTransfer.value || isPortfolioLinked.value || isPreciousMetalsLinked.value,
 );
 const isPlannedRow = computed(() => props.tx.isPlanned);
 const isPlanExpired = computed(() => isPlannedRow.value && isPlanMatchWindowExpired({ time: props.tx.time }));
@@ -371,7 +379,7 @@ const transferDestinationName = computed(
 const formattedDate = computed(() => format(new Date(props.tx.time), 'd MMM y'));
 
 const amountColorClass = computed(() => {
-  if (isTwoLegTransferRow.value) return 'text-app-transfer-color';
+  if (isTwoLegTransferRow.value || isPreciousMetalsLinked.value) return 'text-app-transfer-color';
   if (props.tx.transactionType === TRANSACTION_TYPES.income) return 'text-app-income-color';
   return 'text-app-expense-color';
 });

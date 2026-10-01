@@ -17,9 +17,19 @@ import {
 
 const ymd = (date: Date) => format(date, 'yyyy-MM-dd');
 
-const ALL_INCLUDED: NetWorthIncludeSettings = { includeVentures: true, includeVehicles: true, includeLoans: true };
+const ALL_INCLUDED: NetWorthIncludeSettings = {
+  includeVentures: true,
+  includeVehicles: true,
+  includeLoans: true,
+  includeMetals: true,
+};
 
-const ALL_EXCLUDED: NetWorthIncludeSettings = { includeVentures: false, includeVehicles: false, includeLoans: false };
+const ALL_EXCLUDED: NetWorthIncludeSettings = {
+  includeVentures: false,
+  includeVehicles: false,
+  includeLoans: false,
+  includeMetals: false,
+};
 
 const widgetConfig = (config?: Record<string, unknown>) => ({ widgetId: 'net-worth', colSpan: 1, config });
 
@@ -30,6 +40,7 @@ const point = ({
   ventures = 0,
   vehicles = 0,
   loans = 0,
+  metals = 0,
 }: {
   date: string;
   accounts?: number;
@@ -37,6 +48,7 @@ const point = ({
   ventures?: number;
   vehicles?: number;
   loans?: number;
+  metals?: number;
 }): CombinedBalanceHistoryEntity => ({
   date,
   accountsBalance: accounts,
@@ -44,7 +56,10 @@ const point = ({
   venturesBalance: ventures,
   vehiclesBalance: vehicles,
   loansBalance: loans,
-  totalBalance: accounts + portfolios + ventures + vehicles + loans,
+  metalsBalance: metals,
+  unvaluedMetalsCount: 0,
+  staleMetalsCount: 0,
+  totalBalance: accounts + portfolios + ventures + vehicles + loans + metals,
 });
 
 const POINT = point({ date: '2026-07-15', accounts: 1000, portfolios: 500, ventures: 200, vehicles: 300, loans: -400 });
@@ -87,6 +102,13 @@ describe('effectiveNetWorth', () => {
   it('drops only vehicles when vehicles are excluded', () => {
     expect(effectiveNetWorth({ point: POINT, settings: { ...ALL_INCLUDED, includeVehicles: false } })).toBe(1300);
   });
+
+  it('includes metals exactly once and preserves them when another component is excluded', () => {
+    const metalPoint = point({ date: '2026-07-15', accounts: 1000, metals: 300, loans: -100 });
+    expect(effectiveNetWorth({ point: metalPoint, settings: ALL_INCLUDED })).toBe(1200);
+    expect(effectiveNetWorth({ point: metalPoint, settings: { ...ALL_INCLUDED, includeLoans: false } })).toBe(1300);
+    expect(effectiveNetWorth({ point: metalPoint, settings: { ...ALL_INCLUDED, includeMetals: false } })).toBe(900);
+  });
 });
 
 describe('readNetWorthSettings', () => {
@@ -105,13 +127,19 @@ describe('readNetWorthSettings', () => {
       includeVentures: true,
       includeVehicles: true,
       includeLoans: false,
+      includeMetals: true,
     });
   });
 
   it('reads every stored toggle', () => {
     expect(
       readNetWorthSettings({
-        widgetConfig: widgetConfig({ includeVentures: false, includeVehicles: false, includeLoans: false }),
+        widgetConfig: widgetConfig({
+          includeVentures: false,
+          includeVehicles: false,
+          includeLoans: false,
+          includeMetals: false,
+        }),
       }),
     ).toEqual(ALL_EXCLUDED);
   });
@@ -119,7 +147,12 @@ describe('readNetWorthSettings', () => {
   it('falls back to the default for non-boolean stored values', () => {
     expect(
       readNetWorthSettings({
-        widgetConfig: widgetConfig({ includeVentures: 'false', includeVehicles: 0, includeLoans: {} }),
+        widgetConfig: widgetConfig({
+          includeVentures: 'false',
+          includeVehicles: 0,
+          includeLoans: {},
+          includeMetals: 'false',
+        }),
       }),
     ).toEqual(ALL_INCLUDED);
   });
@@ -358,7 +391,7 @@ describe('computeTrendBars', () => {
 
 describe('excludedComponents', () => {
   it('lists every excluded component in bar order', () => {
-    expect(excludedComponents({ settings: ALL_EXCLUDED })).toEqual(['ventures', 'vehicles', 'loans']);
+    expect(excludedComponents({ settings: ALL_EXCLUDED })).toEqual(['ventures', 'vehicles', 'loans', 'metals']);
   });
 
   it('lists only the excluded ones', () => {

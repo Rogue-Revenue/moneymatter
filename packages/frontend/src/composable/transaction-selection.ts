@@ -1,12 +1,24 @@
 import { useAccountsStore } from '@/stores';
-import { TRANSACTION_TRANSFER_NATURE, TRANSACTION_TYPES, TransactionModel } from '@bt/shared/types';
+import { type AccountModel, TRANSACTION_TRANSFER_NATURE, TRANSACTION_TYPES, TransactionModel } from '@bt/shared/types';
 import { storeToRefs } from 'pinia';
 import { computed, ref, triggerRef, watch } from 'vue';
 
 import { useShiftMultiSelect } from './shift-multi-select';
 
 /** Why a row is locked out of bulk selection; rows render it as an explainer tooltip in place of the checkbox. */
-export type BulkUnselectableReason = 'sharedAccount';
+export type BulkUnselectableReason = 'sharedAccount' | 'preciousMetals';
+
+export function getBulkUnselectableReason({
+  tx,
+  account,
+}: {
+  tx: TransactionModel;
+  account: AccountModel | undefined;
+}): BulkUnselectableReason | null {
+  if (tx.transferNature === TRANSACTION_TRANSFER_NATURE.transfer_to_precious_metals) return 'preciousMetals';
+  if (account?.share && !account.share.isOwner) return 'sharedAccount';
+  return null;
+}
 
 /**
  * Per-row bulk-selection eligibility shared by the transactions list and table.
@@ -20,13 +32,11 @@ export function useBulkSelectability() {
   const { accountsRecord } = storeToRefs(useAccountsStore());
 
   const isBulkSelectable = (tx: TransactionModel) => {
-    const share = accountsRecord.value[tx.accountId]?.share;
-    return !share || share.isOwner;
+    return getBulkUnselectableReason({ tx, account: accountsRecord.value[tx.accountId] }) === null;
   };
 
   const getUnselectableReason = (tx: TransactionModel): BulkUnselectableReason | null => {
-    if (!isBulkSelectable(tx)) return 'sharedAccount';
-    return null;
+    return getBulkUnselectableReason({ tx, account: accountsRecord.value[tx.accountId] });
   };
 
   return { isBulkSelectable, getUnselectableReason };
@@ -84,6 +94,7 @@ const INTERNAL_TRANSFER_NATURES = new Set<TRANSACTION_TRANSFER_NATURE>([
   TRANSACTION_TRANSFER_NATURE.transfer_to_loan,
   TRANSACTION_TRANSFER_NATURE.transfer_to_portfolio,
   TRANSACTION_TRANSFER_NATURE.transfer_to_venture,
+  TRANSACTION_TRANSFER_NATURE.transfer_to_precious_metals,
 ]);
 
 /**

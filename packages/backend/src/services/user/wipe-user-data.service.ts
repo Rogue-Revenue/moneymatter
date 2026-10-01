@@ -9,6 +9,8 @@ import Portfolios from '@models/investments/portfolios.model';
 import Notifications from '@models/notifications.model';
 import PayeeIgnoredNames from '@models/payee-ignored-names.model';
 import Payees from '@models/payees.model';
+import PreciousMetalHoldings from '@models/precious-metals/holdings.model';
+import PreciousMetalQuotes from '@models/precious-metals/quotes.model';
 import ResourceShares from '@models/resource-shares.model';
 import ShareInvitations from '@models/share-invitations.model';
 import SubscriptionCandidates from '@models/subscription-candidates.model';
@@ -154,6 +156,8 @@ export const destroyUserOwnedData = async ({ user }: { user: Users.default }) =>
   await VentureDeals.destroy({ where: { userId: user.id }, force: true });
   await VenturePlatforms.destroy({ where: { userId: user.id }, force: true });
   await Vehicles.destroy({ where: { userId: user.id } });
+  await PreciousMetalQuotes.destroy({ where: { userId: user.id } });
+  await PreciousMetalHoldings.destroy({ where: { userId: user.id } });
   await AccountGroups.destroy({ where: { userId: user.id } });
   await TransactionGroups.destroy({ where: { userId: user.id } });
   await Accounts.default.destroy({ where: { userId: user.id } });

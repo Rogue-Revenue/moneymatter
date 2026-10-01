@@ -254,6 +254,29 @@ describe('Base-currency lock returns 423 on guarded routes', () => {
     });
     expect(response.statusCode).toBe(200);
   });
+
+  it('blocks every precious metal mutation while continuing to serve the overview', async () => {
+    const user = await helpers.getUserInfo({ raw: true });
+    const holding = await helpers.createMetalHolding({ raw: true });
+    await withUserLock({
+      userId: user.id,
+      fn: async () => {
+        for (const { method, url } of [
+          { method: 'post' as const, url: '/precious-metals' },
+          { method: 'post' as const, url: '/precious-metals/refresh' },
+          { method: 'patch' as const, url: `/precious-metals/${holding.id}` },
+          { method: 'post' as const, url: `/precious-metals/${holding.id}/events` },
+          { method: 'delete' as const, url: `/precious-metals/${holding.id}/events/${holding.id}` },
+          { method: 'post' as const, url: `/precious-metals/${holding.id}/events/${holding.id}/link` },
+          { method: 'delete' as const, url: `/precious-metals/${holding.id}/events/${holding.id}/link` },
+          { method: 'post' as const, url: `/precious-metals/${holding.id}/quotes` },
+        ]) {
+          expectLocked(await helpers.makeRequest({ method, url }));
+        }
+        expect((await helpers.listMetalHoldings()).statusCode).toBe(200);
+      },
+    });
+  });
 });
 
 describe('Share-accept refuses while either party holds the base-currency lock', () => {

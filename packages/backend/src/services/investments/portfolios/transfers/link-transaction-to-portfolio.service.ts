@@ -1,11 +1,12 @@
 import { TRANSACTION_TRANSFER_NATURE, TRANSACTION_TYPES } from '@bt/shared/types';
 import { findOrThrowNotFound } from '@common/utils/find-or-throw-not-found';
 import { t } from '@i18n/index';
-import { ValidationError } from '@js/errors';
 import Currencies from '@models/currencies.model';
 import PortfolioTransfers from '@models/investments/portfolio-transfers.model';
 import Portfolios from '@models/investments/portfolios.model';
+import { findOneTransaction } from '@models/transactions-query';
 import * as Transactions from '@models/transactions.model';
+import { assertNotAlreadyLinked } from '@services/common/transaction-linking';
 import { withTransaction } from '@services/common/with-transaction';
 import { updatePortfolioBalance } from '@services/investments/portfolios/balances';
 import { format } from 'date-fns';
@@ -19,12 +20,6 @@ interface LinkTransactionToPortfolioParams {
   affectsCash?: boolean;
 }
 
-const DISALLOWED_TRANSFER_NATURES = [
-  TRANSACTION_TRANSFER_NATURE.common_transfer,
-  TRANSACTION_TRANSFER_NATURE.transfer_to_portfolio,
-  TRANSACTION_TRANSFER_NATURE.transfer_to_venture,
-];
-
 const linkTransactionToPortfolioImpl = async ({
   userId,
   transactionId,
@@ -32,25 +27,17 @@ const linkTransactionToPortfolioImpl = async ({
   affectsCash = true,
 }: LinkTransactionToPortfolioParams) => {
   const tx = await findOrThrowNotFound({
-    query: Transactions.getTransactionById({ id: transactionId, userId }),
+    query: findOneTransaction({
+      planned: 'include',
+      access: { creator: userId },
+      balanceAdjustments: 'include',
+      where: { id: transactionId },
+      lock: true,
+    }),
     message: t({ key: 'transactions.notFound' }),
   });
 
-  if (DISALLOWED_TRANSFER_NATURES.includes(tx.transferNature)) {
-    throw new ValidationError({
-      message: t({ key: 'investments.transactionAlreadyTransfer' }),
-    });
-  }
-
-  const existingLink = await PortfolioTransfers.findOne({
-    where: { transactionId },
-  });
-
-  if (existingLink) {
-    throw new ValidationError({
-      message: t({ key: 'investments.transactionAlreadyLinkedToPortfolio' }),
-    });
-  }
+  await assertNotAlreadyLinked({ tx });
 
   await findPortfolioOrThrow({ portfolioId, userId, role: 'generic' });
 

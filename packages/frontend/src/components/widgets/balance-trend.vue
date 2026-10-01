@@ -25,6 +25,12 @@
       </EmptyState>
     </template>
     <template v-else>
+      <p v-if="metalsValuationStatus.hasUnvaluedMetals" class="text-warning-text mb-2 text-xs" role="status">
+        {{ $t('dashboard.widgets.netWorth.metalsValuation.partial') }}
+      </p>
+      <p v-if="metalsValuationStatus.hasStaleMetals" class="text-warning-text mb-2 text-xs" role="status">
+        {{ $t('dashboard.widgets.netWorth.metalsValuation.stale') }}
+      </p>
       <!-- Stats row - two columns with space between -->
       <div class="max-xs:px-2 mb-4 flex items-start justify-between gap-4">
         <!-- Left: Primary value -->
@@ -204,7 +210,13 @@ import EmptyState from './components/empty-state.vue';
 import LoadingState from './components/loading-state.vue';
 import SpikeTransactionsPanel from './components/spike-transactions-panel.vue';
 import WidgetWrapper from './components/widget-wrapper.vue';
-import { type NetWorthComponentBalances, type NetWorthIncludeSettings, composeNetWorth } from './net-worth-composition';
+import {
+  type NetWorthComponentBalances,
+  type NetWorthIncludeSettings,
+  composeNetWorth,
+  getMetalsValuationStatus,
+  hasNetWorthData,
+} from './net-worth-composition';
 
 // Calculate it manually so chart will always have first and last ticks (dates)
 function generateDateSteps({
@@ -241,7 +253,7 @@ const props = defineProps<{
 
 const { t } = useI18n();
 
-type BalanceTypeValue = 'total' | 'accounts' | 'portfolios' | 'ventures' | 'vehicles' | 'loans';
+type BalanceTypeValue = 'total' | 'accounts' | 'portfolios' | 'ventures' | 'vehicles' | 'loans' | 'metals';
 type BalanceTypeOption = { value: BalanceTypeValue; label: string };
 
 const selectedBalanceType = ref<BalanceTypeOption>({
@@ -289,11 +301,16 @@ const includeLoansInTotal = computed<boolean>(() => {
   const cfg = widgetConfigRef?.value?.config;
   return (cfg?.includeLoansInTotal as boolean | undefined) ?? true;
 });
+const includeMetalsInTotal = computed<boolean>(() => {
+  const cfg = widgetConfigRef?.value?.config;
+  return (cfg?.includeMetalsInTotal as boolean | undefined) ?? true;
+});
 
 const compositionSettings = computed<NetWorthIncludeSettings>(() => ({
   includeVentures: includeVenturesInTotal.value,
   includeVehicles: includeVehiclesInTotal.value,
   includeLoans: includeLoansInTotal.value,
+  includeMetals: includeMetalsInTotal.value,
 }));
 const includePlanned = computed<boolean>(() => readIncludePlanned({ config: widgetConfigRef?.value?.config }));
 
@@ -314,6 +331,7 @@ const tooltip = reactive({
   venturesBalance: 0,
   vehiclesBalance: 0,
   loansBalance: 0,
+  metalsBalance: 0,
   totalBalance: 0,
   // Point-over-point change of each component, so the tooltip can show which
   // portion of net worth actually moved between the hovered day and the prior one.
@@ -322,6 +340,7 @@ const tooltip = reactive({
   venturesDelta: 0,
   vehiclesDelta: 0,
   loansDelta: 0,
+  metalsDelta: 0,
   // Change of the currently-charted line (matches the selected balance type).
   deltaAbsolute: 0,
   deltaPercent: 0,
@@ -405,7 +424,24 @@ watch(
 );
 
 const isDataEmpty = computed(
-  () => !balanceHistory.value || balanceHistory.value.every((i) => getEffectiveTotal(i) === 0),
+  () =>
+    !hasNetWorthData({
+      points: balanceHistory.value ?? [],
+      settings: { ...compositionSettings.value, includeMetals: true },
+    }),
+);
+
+const metalsValuationStatus = computed(() =>
+  getMetalsValuationStatus({
+    points: [...(balanceHistory.value ?? []), ...(prevPeriodBalance.value ?? [])],
+    includeMetals:
+      selectedBalanceType.value.value === 'metals' ||
+      (selectedBalanceType.value.value === 'total' && includeMetalsInTotal.value),
+  }),
+);
+
+const hasMetalsData = computed(() =>
+  (balanceHistory.value ?? []).some((point) => point.metalsBalance !== 0 || point.unvaluedMetalsCount > 0),
 );
 
 // True when the user has any venture activity reflected in the loaded series.
@@ -444,6 +480,9 @@ const showLoansRow = computed(() => {
   if (selectedBalanceType.value.value === 'loans') return true;
   return includeLoansInTotal.value;
 });
+const showMetalsRow = computed(
+  () => hasMetalsData.value && (selectedBalanceType.value.value === 'metals' || includeMetalsInTotal.value),
+);
 
 const tooltipCurrency = computed(() => baseCurrency.value?.currency?.code);
 const formatTooltipMoney = (value: number) =>
@@ -458,6 +497,13 @@ const deltaColorClass = (delta: number) => ({
 // row flags so the visible deltas always sum to the displayed Total.
 const tooltipComponentRows = computed(() =>
   [
+    {
+      key: 'metals',
+      label: t('dashboard.widgets.balanceTrend.tooltip.metals'),
+      value: tooltip.metalsBalance,
+      delta: tooltip.metalsDelta,
+      show: showMetalsRow.value,
+    },
     {
       key: 'accounts',
       label: t('dashboard.widgets.balanceTrend.tooltip.accounts'),
@@ -511,6 +557,9 @@ const balanceTypeOptions = computed<BalanceTypeOption[]>(() => {
   if (hasLoanData.value) {
     options.push({ value: 'loans', label: t('dashboard.widgets.balanceTrend.balanceTypes.loans') });
   }
+  if (hasMetalsData.value) {
+    options.push({ value: 'metals', label: t('dashboard.widgets.balanceTrend.balanceTypes.metals') });
+  }
   return options;
 });
 
@@ -529,6 +578,11 @@ watch(hasVehicleData, (val) => {
 });
 watch(hasLoanData, (val) => {
   if (!val && selectedBalanceType.value.value === 'loans') {
+    selectedBalanceType.value = balanceTypeOptions.value[0]!;
+  }
+});
+watch(hasMetalsData, (value) => {
+  if (!value && selectedBalanceType.value.value === 'metals') {
     selectedBalanceType.value = balanceTypeOptions.value[0]!;
   }
 });
@@ -586,6 +640,9 @@ const chartData = computed(() => {
       case 'loans':
         value = point.loansBalance;
         break;
+      case 'metals':
+        value = point.metalsBalance;
+        break;
       default:
         value = effectiveTotal;
     }
@@ -598,6 +655,7 @@ const chartData = computed(() => {
       venturesBalance: point.venturesBalance,
       vehiclesBalance: point.vehiclesBalance,
       loansBalance: point.loansBalance,
+      metalsBalance: point.metalsBalance,
       totalBalance: effectiveTotal,
     };
   });
@@ -1023,6 +1081,7 @@ const renderChart = () => {
       tooltip.venturesBalance = d.venturesBalance;
       tooltip.vehiclesBalance = d.vehiclesBalance;
       tooltip.loansBalance = d.loansBalance;
+      tooltip.metalsBalance = d.metalsBalance;
       tooltip.totalBalance = d.totalBalance;
 
       // Compute point-over-point deltas (charted line + each component)
@@ -1036,6 +1095,7 @@ const renderChart = () => {
         tooltip.venturesDelta = d.venturesBalance - prevPoint.venturesBalance;
         tooltip.vehiclesDelta = d.vehiclesBalance - prevPoint.vehiclesBalance;
         tooltip.loansDelta = d.loansBalance - prevPoint.loansBalance;
+        tooltip.metalsDelta = d.metalsBalance - prevPoint.metalsBalance;
         tooltip.hasDelta = true;
       } else {
         tooltip.deltaAbsolute = 0;
@@ -1045,6 +1105,7 @@ const renderChart = () => {
         tooltip.venturesDelta = 0;
         tooltip.vehiclesDelta = 0;
         tooltip.loansDelta = 0;
+        tooltip.metalsDelta = 0;
         tooltip.hasDelta = false;
       }
 
@@ -1191,6 +1252,11 @@ const displayBalance = computed(() => {
       return {
         current: latestEntry.loansBalance || 0,
         previous: prevPeriodLastEntry?.loansBalance || 0,
+      };
+    case 'metals':
+      return {
+        current: latestEntry.metalsBalance,
+        previous: prevPeriodLastEntry?.metalsBalance ?? 0,
       };
     case 'total':
     default:

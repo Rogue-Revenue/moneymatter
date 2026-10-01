@@ -1,4 +1,4 @@
-import { BUDGET_TYPES, SHARE_PERMISSIONS } from '@bt/shared/types';
+import { BUDGET_TYPES, SHARE_PERMISSIONS, TRANSACTION_TRANSFER_NATURE } from '@bt/shared/types';
 import { findOrThrowNotFound } from '@common/utils/find-or-throw-not-found';
 import { t } from '@i18n/index';
 import { ValidationError } from '@js/errors';
@@ -50,11 +50,16 @@ export const addTransactionsToBudget = withTransaction(async (payload: AddTransa
     balanceAdjustments: 'include',
     completeness: 'all',
     where: { id: { [Op.in]: transactionIds } },
-    attributes: ['id'],
+    attributes: ['id', 'transferNature'],
+    order: [['id', 'ASC']],
+    lock: true,
   });
 
   if (transactions.length !== transactionIds.length) {
     throw new ValidationError({ message: t({ key: 'budgets.someTransactionIdsInvalid' }) });
+  }
+  if (transactions.some((tx) => tx.transferNature === TRANSACTION_TRANSFER_NATURE.transfer_to_precious_metals)) {
+    throw new ValidationError({ message: t({ key: 'preciousMetals.manageLinkFromHolding' }) });
   }
 
   // Stamp `addedByUserId` on recipient-attached rows so the share-revocation sweep and

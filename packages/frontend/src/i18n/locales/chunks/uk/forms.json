@@ -189,7 +189,16 @@
     },
     "validators": {
       "invalidCurrencyDecimal": "Введіть коректну суму (до 2 знаків після коми)",
-      "mustBePositive": "Сума має бути додатною"
+      "mustBePositive": "Сума має бути додатною",
+      "preciousMetalsName": "Введіть назву активу.",
+      "preciousMetalsPhysical": "Введіть додатну масу та чистоту понад 0%, але не більше ніж 100%.",
+      "preciousMetalsCurrency": "Виберіть валюту.",
+      "preciousMetalsDate": "Введіть дійсну дату.",
+      "preciousMetalsFutureDate": "Дата не може бути в майбутньому.",
+      "preciousMetalsQuantity": "Введіть кількість більшу за нуль.",
+      "preciousMetalsOversell": "Кількість для продажу перевищує наявну кількість.",
+      "preciousMetalsAmount": "Введіть невід'ємну суму або залиште поле порожнім, якщо сума невідома.",
+      "preciousMetalsPrice": "Введіть додатну ціну та дійсну дату."
     },
     "exchangeCurrency": {
       "fromCurrencyLabel": "З валюти",

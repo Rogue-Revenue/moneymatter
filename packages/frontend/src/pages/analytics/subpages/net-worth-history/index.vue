@@ -60,6 +60,19 @@
         </ul>
       </Callout>
 
+      <Callout
+        v-if="metalsValuationStatus.hasUnvaluedMetals || metalsValuationStatus.hasStaleMetals"
+        variant="warning"
+        :title="$t('netWorthHistory.metalsValuation.title')"
+      >
+        <p v-if="metalsValuationStatus.hasUnvaluedMetals">
+          {{ $t('netWorthHistory.metalsValuation.partial') }}
+        </p>
+        <p v-if="metalsValuationStatus.hasStaleMetals">
+          {{ $t('netWorthHistory.metalsValuation.stale') }}
+        </p>
+      </Callout>
+
       <SummaryRows v-if="hasData" :items="summaryRows" class="@md/net-worth-history:hidden">
         <i18n-t v-if="averageOwed > 0" keypath="netWorthHistory.cards.averageLiabilities" tag="p" class="text-sm">
           <template #amount>
@@ -127,6 +140,7 @@ import { getNetWorthHistory } from '@/api';
 import { ACCOUNT_CATEGORIES_TRANSLATION_KEYS } from '@/common/const/account-categories-verbose';
 import { QUERY_CACHE_STALE_TIME, VUE_QUERY_CACHE_KEYS } from '@/common/const';
 import { Callout } from '@/components/lib/ui/callout';
+import { getMetalsValuationStatus } from '@/components/widgets/net-worth-composition';
 import { useFormatCurrency } from '@/composable/formatters';
 import type { Period } from '@/composable/use-period-navigation';
 import { endpointsTypes } from '@bt/shared/types';
@@ -153,6 +167,7 @@ import {
   buildDisplayPoints,
   computePeriodChange,
   disabledGranularities,
+  hasNetWorthHistoryData,
   kindsWithActivity,
   NET_WORTH_ASSET_KIND_COLORS,
   NET_WORTH_ASSET_KIND_LABEL_KEYS,
@@ -246,9 +261,11 @@ const displayPoints = computed(() =>
   }),
 );
 
-// The backend returns a full list of all-zero buckets even for a user with no
-// balances, so row presence can't distinguish "no data" — only nonzero values can.
-const hasData = computed(() => points.value.some((point) => point.assetsTotal !== 0 || point.liabilitiesTotal !== 0));
+const hasData = computed(() => hasNetWorthHistoryData({ points: points.value }));
+
+const metalsValuationStatus = computed(() =>
+  getMetalsValuationStatus({ points: displayPoints.value, includeMetals: true }),
+);
 
 const { t } = useI18n();
 const { formatBaseCurrency } = useFormatCurrency();

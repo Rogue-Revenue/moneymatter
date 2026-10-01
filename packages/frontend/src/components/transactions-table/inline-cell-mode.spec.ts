@@ -124,6 +124,11 @@ describe('getInlineCellMode', () => {
       'm m m m m m m',
     ],
     [
+      'precious metal cash link',
+      { tx: buildTx({ transferNature: TRANSACTION_TRANSFER_NATURE.transfer_to_precious_metals }), account: manual },
+      'm m m m m m m',
+    ],
+    [
       'vehicle value adjustment',
       { tx: buildTx({ transferNature: TRANSACTION_TRANSFER_NATURE.transfer_out_wallet }), account: vehicle },
       'm m m m m m m',

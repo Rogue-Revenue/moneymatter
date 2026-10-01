@@ -29,6 +29,9 @@ import PayeeAliases from '@models/payee-aliases.model';
 import PayeeIgnoredNames from '@models/payee-ignored-names.model';
 import PayeeTags from '@models/payee-tags.model';
 import Payees from '@models/payees.model';
+import PreciousMetalEvents from '@models/precious-metals/events.model';
+import PreciousMetalHoldings from '@models/precious-metals/holdings.model';
+import PreciousMetalQuotes from '@models/precious-metals/quotes.model';
 import RefundTransactions from '@models/refund-transactions.model';
 import ResourceShares from '@models/resource-shares.model';
 import ShareInvitations from '@models/share-invitations.model';
@@ -317,6 +320,13 @@ export const BACKUP_TABLES: readonly BackupTableDef[] = [
     restoreMode: 'insert',
   },
   {
+    fileName: 'precious-metal-holdings',
+    model: PreciousMetalHoldings,
+    tier: 3,
+    scope: { strategy: 'userColumn', column: 'userId' },
+    restoreMode: 'insert',
+  },
+  {
     fileName: 'loan-details',
     model: LoanDetails,
     tier: 3,
@@ -394,6 +404,14 @@ export const BACKUP_TABLES: readonly BackupTableDef[] = [
     fileName: 'subscription-candidates',
     model: SubscriptionCandidates,
     tier: 4,
+    scope: { strategy: 'userColumn', column: 'userId' },
+    restoreMode: 'insert',
+  },
+  {
+    fileName: 'precious-metal-quotes',
+    model: PreciousMetalQuotes,
+    tier: 4,
+    // Global provider observations have userId = null and are never restored from an archive.
     scope: { strategy: 'userColumn', column: 'userId' },
     restoreMode: 'insert',
   },
@@ -481,6 +499,13 @@ export const BACKUP_TABLES: readonly BackupTableDef[] = [
     model: VentureEventLinks,
     tier: 5,
     scope: { strategy: 'viaParent', fk: 'ventureEventId', parent: 'ventureEvents' },
+    restoreMode: 'insert',
+  },
+  {
+    fileName: 'precious-metal-events',
+    model: PreciousMetalEvents,
+    tier: 5,
+    scope: { strategy: 'userColumn', column: 'userId' },
     restoreMode: 'insert',
   },
 

@@ -78,7 +78,8 @@
         "outOfWallet": "Поза гаманцем",
         "toPortfolio": "На портфель",
         "toVenture": "На венчур",
-        "selectedCount": "Вибрано: {n}"
+        "selectedCount": "Вибрано: {n}",
+        "toPreciousMetals": "У дорогоцінні метали"
       }
     },
     "list": {

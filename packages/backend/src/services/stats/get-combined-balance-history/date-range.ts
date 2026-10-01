@@ -2,6 +2,7 @@ import { toUtcDateString } from '@common/utils/date';
 import InvestmentTransaction from '@models/investments/investment-transaction.model';
 import PortfolioTransfers from '@models/investments/portfolio-transfers.model';
 import Portfolios from '@models/investments/portfolios.model';
+import PreciousMetalEvents from '@models/precious-metals/events.model';
 import VentureDeals from '@models/venture/venture-deals.model';
 import { Op } from 'sequelize';
 
@@ -27,7 +28,7 @@ export const resolveOldestEventDate = async ({
   });
   const enabledPortfolioIds = enabledPortfolios.map((p: { id: string }) => p.id);
 
-  const [oldestTransaction, oldestDeal, oldestTransfer] = await Promise.all([
+  const [oldestTransaction, oldestDeal, oldestTransfer, oldestMetalEvent] = await Promise.all([
     InvestmentTransaction.findOne({
       where: { portfolioId: { [Op.in]: enabledPortfolioIds } },
       order: [['date', 'ASC']],
@@ -52,12 +53,19 @@ export const resolveOldestEventDate = async ({
       attributes: ['date'],
       raw: true,
     }),
+    PreciousMetalEvents.findOne({
+      where: { userId },
+      order: [['date', 'ASC']],
+      attributes: ['date'],
+      raw: true,
+    }),
   ]);
 
   const candidates: string[] = [];
   if (oldestTransaction?.date) candidates.push(toUtcDateString(oldestTransaction.date));
   if (oldestDeal?.investmentDate) candidates.push(oldestDeal.investmentDate);
   if (oldestTransfer?.date) candidates.push(oldestTransfer.date);
+  if (oldestMetalEvent?.date) candidates.push(toUtcDateString(oldestMetalEvent.date));
 
   // Fixed-width `yyyy-MM-dd` strings compare correctly lexicographically.
   return candidates.length === 0 ? fallback : candidates.reduce((a, b) => (a < b ? a : b));

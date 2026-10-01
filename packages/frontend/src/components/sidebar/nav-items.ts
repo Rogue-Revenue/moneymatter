@@ -1,6 +1,7 @@
 import { ROUTES_NAMES } from '@/routes/constants';
 import {
   CreditCardIcon,
+  GemIcon,
   GroupIcon,
   HandCoinsIcon,
   RepeatIcon,
@@ -24,6 +25,7 @@ export const SIDEBAR_NAV_CHILDREN = {
     { routeName: ROUTES_NAMES.accounts, labelKey: 'navigation.accountsList', icon: WalletIcon },
     { routeName: ROUTES_NAMES.loans, labelKey: 'navigation.loans', icon: HandCoinsIcon },
     { routeName: ROUTES_NAMES.investments, labelKey: 'navigation.investments', icon: TrendingUpIcon },
+    { routeName: ROUTES_NAMES.preciousMetals, labelKey: 'navigation.preciousMetals', icon: GemIcon },
     { routeName: ROUTES_NAMES.venture, labelKey: 'navigation.venture', icon: RocketIcon },
   ],
   transactions: [

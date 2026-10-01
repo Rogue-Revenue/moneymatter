@@ -2,6 +2,7 @@ import { TRANSACTION_TRANSFER_NATURE } from '@bt/shared/types';
 import { findOrThrowNotFound } from '@common/utils/find-or-throw-not-found';
 import { t } from '@i18n/index';
 import { ValidationError } from '@js/errors';
+import { findOneTransaction } from '@models/transactions-query';
 import * as Transactions from '@models/transactions.model';
 import VentureEventLinks from '@models/venture/venture-event-links.model';
 import {
@@ -41,9 +42,15 @@ const linkTxsToEventImpl = async ({ userId, eventId, transactionIds }: LinkTxsTo
 
   // Load all txs in one pass
   const txs = await Promise.all(
-    transactionIds.map((id) =>
+    transactionIds.toSorted().map((id) =>
       findOrThrowNotFound({
-        query: Transactions.getTransactionById({ id, userId }),
+        query: findOneTransaction({
+          planned: 'include',
+          access: { creator: userId },
+          balanceAdjustments: 'include',
+          where: { id },
+          lock: true,
+        }),
         message: t({ key: 'transactions.notFound' }),
       }),
     ),

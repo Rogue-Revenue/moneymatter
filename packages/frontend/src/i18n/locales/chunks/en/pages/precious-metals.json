@@ -1,0 +1,182 @@
+{
+  "preciousMetals": {
+    "title": "Precious metals",
+    "subtitle": "Track physical gold, silver, and platinum, purchase lots, sales, and spot estimates.",
+    "addHolding": "Add holding",
+    "editHolding": "Edit holding",
+    "back": "All precious metals",
+    "closed": "Closed",
+    "loading": "Loading holdings…",
+    "empty": {
+      "title": "Start with your physical gold, silver, or platinum",
+      "description": "Add a coin, bar, or round and record what you own. Purchase costs can stay unknown.",
+      "action": "Add your first holding"
+    },
+    "provider": {
+      "configured": "Automatic prices: {provider}. Refreshes are cached for {hours} hours.",
+      "manual": "Automatic price updates are disabled. Add a manual quote to value your holdings.",
+      "refresh": "Refresh market prices",
+      "refreshed": "Market prices refreshed.",
+      "cached": "Using the latest cached market prices.",
+      "unconfigured": "Automatic price updates are disabled. Manual quotes remain available."
+    },
+    "notice": {
+      "spot": "Spot estimates value fine metal only. They exclude collectible premiums and do not guarantee a resale price.",
+      "cash": "Recording a lot or sale creates no bank transaction and is not a budget expense. Record the cash movement separately if needed, then link an existing matching transaction.",
+      "fifo": "Sales use the oldest purchase lots first (FIFO). Cost and gains are tracking estimates, not tax advice.",
+      "unknown": "Some purchase costs are unknown. Known cost is shown separately; a full cost basis and gain cannot be calculated.",
+      "immutable": "Metal, physical specifications, and currency cannot be changed after creation.",
+      "manual": "A manual quote selects manual pricing for this holding. Its as-of date controls when it can be used in valuation history."
+    },
+    "metal": {
+      "gold": "Gold",
+      "silver": "Silver",
+      "platinum": "Platinum"
+    },
+    "form": {
+      "coin": "Coin",
+      "bar": "Bar",
+      "round": "Round"
+    },
+    "unit": {
+      "g": "Grams",
+      "troy_oz": "Troy ounces"
+    },
+    "basis": {
+      "gross": "Gross weight (includes other metals)",
+      "fine": "Fine metal weight"
+    },
+    "mode": {
+      "automatic": "Automatic market price",
+      "manual": "Manual quote"
+    },
+    "status": {
+      "current": "Current price",
+      "stale": "Stale price",
+      "missing_price": "Price unavailable",
+      "missing_fx": "Exchange rate unavailable",
+      "empty": "No remaining quantity"
+    },
+    "fields": {
+      "name": "Holding name",
+      "namePlaceholder": "e.g. Gold sovereigns",
+      "metal": "Metal",
+      "metalPlaceholder": "Choose gold, silver, or platinum",
+      "form": "Physical form",
+      "formPlaceholder": "Choose a coin, bar, or round",
+      "currency": "Valuation currency",
+      "currencyPlaceholder": "Choose a currency",
+      "weight": "Weight per item",
+      "weightPlaceholder": "e.g. 31.1034768",
+      "unit": "Weight unit",
+      "unitPlaceholder": "Choose grams or troy ounces",
+      "basis": "Weight basis",
+      "basisPlaceholder": "Choose gross or fine weight",
+      "purity": "Purity (%)",
+      "purityPlaceholder": "e.g. 99.99",
+      "purityHint": "For gross weight, fine metal weight is gross weight × purity. Fine weight already represents pure metal.",
+      "pricing": "Pricing",
+      "pricingPlaceholder": "Choose automatic or manual pricing",
+      "storage": "Storage and notes",
+      "storagePlaceholder": "e.g. Home safe, certificate details",
+      "opening": "Record an opening lot",
+      "openingHint": "Use an opening lot for metal you already own. It does not move cash.",
+      "quantity": "Number of items",
+      "quantityPlaceholder": "e.g. 2 or 0.5",
+      "date": "Date",
+      "datePlaceholder": "YYYY-MM-DD",
+      "cost": "Total acquisition cost",
+      "costPlaceholder": "Leave blank if unknown",
+      "costHint": "Include purchase premiums, taxes, shipping, and fees in the total.",
+      "proceeds": "Net sale proceeds",
+      "proceedsPlaceholder": "Leave blank if unknown",
+      "proceedsHint": "Enter the total received after selling fees.",
+      "notes": "Event notes",
+      "notesPlaceholder": "e.g. Dealer or receipt reference",
+      "available": "Available: {quantity} items",
+      "price": "Price per fine troy ounce",
+      "pricePlaceholder": "Enter a positive spot price",
+      "quoteCurrency": "Quote currency",
+      "quoteCurrencyPlaceholder": "Choose the quote currency",
+      "asOf": "Quote as-of date (00:00 UTC)",
+      "asOfPlaceholder": "YYYY-MM-DD"
+    },
+    "actions": {
+      "purchase": "Add purchase",
+      "sale": "Record sale",
+      "opening": "Add opening lot",
+      "quote": "Set manual price",
+      "link": "Link cash transaction",
+      "unlink": "Unlink cash transaction",
+      "remove": "Remove entry",
+      "pick": "Choose an existing transaction"
+    },
+    "events": {
+      "opening": "Opening lot",
+      "purchase": "Purchase",
+      "sale": "Sale",
+      "title": "Activity",
+      "empty": "No activity yet. Record an opening lot or a purchase.",
+      "amount": "Amount",
+      "costBasis": "FIFO cost basis",
+      "realized": "Realized gain",
+      "linked": "Cash transaction linked",
+      "notLinked": "No cash transaction linked"
+    },
+    "lots": {
+      "title": "Purchase lots",
+      "empty": "Purchase lots appear after an opening lot or purchase.",
+      "remaining": "{remaining} of {quantity} items remaining",
+      "cost": "Remaining cost",
+      "fineWeight": "Fine grams per item"
+    },
+    "valuation": {
+      "title": "Valuation",
+      "spot": "Estimated spot value",
+      "quantity": "Items held",
+      "fineGrams": "Fine grams",
+      "fineOz": "Fine troy ounces",
+      "knownCost": "Known remaining cost",
+      "cost": "Remaining cost basis",
+      "unrealized": "Unrealized gain",
+      "realized": "Realized gain",
+      "unknownQuantity": "Cost unknown for {quantity} remaining items",
+      "price": "Quote per fine troy ounce",
+      "source": "Source: {source}",
+      "manualSource": "Manual",
+      "asOf": "As of {date}",
+      "quoteCurrency": "Quote currency: {currency}",
+      "stale": "The latest quote is more than 72 hours old.",
+      "missingFx": "A required exchange rate is unavailable. No estimated value is included until a rate is available."
+    },
+    "quotes": {
+      "title": "Quote history",
+      "empty": "No quotes yet. Add a manual quote or use automatic prices.",
+      "manual": "Manual",
+      "automatic": "Market provider",
+      "recorded": "Recorded {date}"
+    },
+    "link": {
+      "title": "Link an existing cash transaction",
+      "description": "Choose a matching expense for a purchase or income for a sale. Linking does not move cash or create another transaction.",
+      "selected": "Selected: {amount}",
+      "direction": "Choose an expense for a purchase or income for a sale.",
+      "currency": "The cash transaction must use the holding currency.",
+      "amount": "The cash transaction amount must match this entry's total.",
+      "planned": "Choose an actual transaction, not a planned one.",
+      "unknownAmount": "Enter a known total before linking a cash transaction.",
+      "opening": "Opening lots cannot be linked to cash transactions.",
+      "transfer": "Choose a transaction that is not already a transfer.",
+      "refund": "Refund-linked transactions cannot be used.",
+      "linked": "Cash transaction linked.",
+      "unlinked": "Cash transaction unlinked."
+    },
+    "notifications": {
+      "created": "Holding added.",
+      "updated": "Holding updated.",
+      "event": "Inventory entry recorded.",
+      "quote": "Manual quote saved.",
+      "removed": "Inventory entry removed."
+    }
+  }
+}

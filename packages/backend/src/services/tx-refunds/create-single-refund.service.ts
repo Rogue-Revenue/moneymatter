@@ -6,6 +6,7 @@ import { NotFoundError, ValidationError } from '@js/errors';
 import { logger } from '@js/utils/logger';
 import * as RefundTransactions from '@models/refund-transactions.model';
 import * as TransactionSplits from '@models/transaction-splits.model';
+import { findTransactions } from '@models/transactions-query';
 import * as Transactions from '@models/transactions.model';
 import { Op } from 'sequelize';
 
@@ -49,6 +50,17 @@ export const createSingleRefund = withTransaction(
     splitId,
   }: CreateSingleRefundParams): Promise<RefundTransactions.default> => {
     try {
+      // All attachment paths take the same transaction lock before eligibility checks.
+      await findTransactions({
+        planned: 'include',
+        access: { creator: userId },
+        balanceAdjustments: 'include',
+        completeness: 'all',
+        where: { id: { [Op.in]: originalTxId ? [originalTxId, refundTxId] : [refundTxId] } },
+        attributes: ['id'],
+        order: [['id', 'ASC']],
+        lock: true,
+      });
       // Fetch original and refund transactions
       const [originalTx, refundTx] = await Promise.all([
         Transactions.getTransactionById({ userId, id: originalTxId! }),

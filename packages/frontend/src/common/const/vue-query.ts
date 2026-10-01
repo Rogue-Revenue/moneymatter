@@ -23,16 +23,25 @@ export const VUE_QUERY_GLOBAL_PREFIXES = Object.freeze({
   // When venture deals/events change, combined-balance-history (and other
   // venture-aware queries) need to refresh.
   ventureChange: 'global-query-venture-change',
+  preciousMetalsChange: 'global-query-precious-metals-change',
 
   currencies: 'currencies',
 
   notifications: 'notifications',
 });
 
-const { transactionChange, securityPriceChange, bankConnectionChange, ventureChange, notifications } =
-  VUE_QUERY_GLOBAL_PREFIXES;
+const {
+  transactionChange,
+  securityPriceChange,
+  bankConnectionChange,
+  ventureChange,
+  preciousMetalsChange,
+  notifications,
+} = VUE_QUERY_GLOBAL_PREFIXES;
 
 export const VUE_QUERY_CACHE_KEYS = Object.freeze({
+  preciousMetalsOverview: [preciousMetalsChange, transactionChange, 'precious-metals-overview'] as const,
+  preciousMetalHolding: [preciousMetalsChange, transactionChange, 'precious-metal-holding'] as const,
   // auth
   signupsOpen: ['signups-open'] as const,
   // currencies
@@ -45,19 +54,33 @@ export const VUE_QUERY_CACHE_KEYS = Object.freeze({
   exchangeRatePair: [VUE_QUERY_GLOBAL_PREFIXES.currencies, 'rate-pair'] as const,
 
   // widget balance trend
-  widgetBalanceTrend: [transactionChange, securityPriceChange, ventureChange, 'widget-balance-trend'] as const,
-  widgetBalanceTrendPrev: [transactionChange, securityPriceChange, ventureChange, 'widget-balance-trend-prev'] as const,
+  widgetBalanceTrend: [
+    transactionChange,
+    securityPriceChange,
+    ventureChange,
+    preciousMetalsChange,
+    'widget-balance-trend',
+  ] as const,
+  widgetBalanceTrendPrev: [
+    transactionChange,
+    securityPriceChange,
+    ventureChange,
+    preciousMetalsChange,
+    'widget-balance-trend-prev',
+  ] as const,
   widgetBalanceTrendPlanned: [transactionChange, 'widget-balance-trend-planned'] as const,
   widgetBalanceTotalBalance: [
     transactionChange,
     securityPriceChange,
     ventureChange,
+    preciousMetalsChange,
     'widget-balance-total-balance',
   ] as const,
   widgetBalancePreviousBalance: [
     transactionChange,
     securityPriceChange,
     ventureChange,
+    preciousMetalsChange,
     'widget-balance-previous-balance',
   ] as const,
 
@@ -82,13 +105,20 @@ export const VUE_QUERY_CACHE_KEYS = Object.freeze({
   widgetCashFlowTrend: [transactionChange, 'widget-cash-flow-trend'] as const,
 
   // widget net worth
-  widgetNetWorth: [transactionChange, securityPriceChange, ventureChange, 'widget-net-worth'] as const,
+  widgetNetWorth: [
+    transactionChange,
+    securityPriceChange,
+    ventureChange,
+    preciousMetalsChange,
+    'widget-net-worth',
+  ] as const,
 
   // analytics
   analyticsBalanceHistoryTrend: [
     transactionChange,
     securityPriceChange,
     ventureChange,
+    preciousMetalsChange,
     'analytics-balance-history-trend',
   ] as const,
   analyticsCashFlow: [transactionChange, 'analytics-cash-flow'] as const,
@@ -98,6 +128,7 @@ export const VUE_QUERY_CACHE_KEYS = Object.freeze({
     transactionChange,
     securityPriceChange,
     ventureChange,
+    preciousMetalsChange,
     'analytics-net-worth-history',
   ] as const,
   // Depends on security prices as well as transactions: a price move changes the
@@ -109,7 +140,13 @@ export const VUE_QUERY_CACHE_KEYS = Object.freeze({
   analyticsInvestmentContributions: [transactionChange, 'analytics-investment-contributions'] as const,
   analyticsVentureContributions: [transactionChange, 'analytics-venture-contributions'] as const,
   analyticsPivotReport: [transactionChange, 'analytics-pivot-report'] as const,
-  fireNetWorthHistory: [transactionChange, securityPriceChange, ventureChange, 'fire-net-worth-history'] as const,
+  fireNetWorthHistory: [
+    transactionChange,
+    securityPriceChange,
+    ventureChange,
+    preciousMetalsChange,
+    'fire-net-worth-history',
+  ] as const,
   fireCashFlow: [transactionChange, 'fire-cash-flow'] as const,
   fireVentureContributions: [transactionChange, ventureChange, 'fire-venture-contributions'] as const,
   analyticsCumulative: [transactionChange, 'analytics-cumulative'] as const,

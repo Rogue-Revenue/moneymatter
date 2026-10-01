@@ -11,6 +11,7 @@ export const SELECTABLE_TRANSFER_NATURES = [
   TRANSACTION_TRANSFER_NATURE.transfer_out_wallet,
   TRANSACTION_TRANSFER_NATURE.transfer_to_portfolio,
   TRANSACTION_TRANSFER_NATURE.transfer_to_venture,
+  TRANSACTION_TRANSFER_NATURE.transfer_to_precious_metals,
 ] as const;
 
 export interface FiltersStruct {

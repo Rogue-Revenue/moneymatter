@@ -207,6 +207,16 @@ export const getWritableTransactionById = withTransaction(
     userId: number;
     includeSplits?: boolean;
   }): Promise<{ tx: Transactions.default; ctx: WritableTransactionAuthContext }> => {
+    // Pin classification before the authorization fetch: a concurrent asset link must
+    // finish before update/delete validates whether this transaction remains editable.
+    await findOneTransaction({
+      planned: 'include',
+      access: 'unscoped-internal',
+      balanceAdjustments: 'include',
+      where: { id },
+      attributes: ['id'],
+      lock: true,
+    });
     const fetched = await getTransactionById({
       id,
       userId,

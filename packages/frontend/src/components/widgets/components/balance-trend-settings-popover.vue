@@ -115,6 +115,16 @@
 
               <div class="flex items-center justify-between gap-2 rounded-md px-2 py-2">
                 <span class="text-sm font-medium">
+                  {{ $t('dashboard.widgets.balanceTrend.componentsSettings.metals') }}
+                </span>
+                <Switch
+                  :model-value="persistedSettings.includeMetalsInTotal"
+                  @update:model-value="(value: boolean) => persistConfig({ includeMetalsInTotal: value })"
+                />
+              </div>
+
+              <div class="flex items-center justify-between gap-2 rounded-md px-2 py-2">
+                <span class="text-sm font-medium">
                   {{ t('dashboard.widgets.balanceTrend.componentsSettings.vehicles') }}
                 </span>
                 <Switch
@@ -285,6 +295,7 @@ const FIT_TO_LATEST_DATA_DEFAULT = true;
 const INCLUDE_VEHICLES_DEFAULT = true;
 const INCLUDE_VENTURES_DEFAULT = true;
 const INCLUDE_LOANS_DEFAULT = true;
+const INCLUDE_METALS_DEFAULT = true;
 
 const persistedSettings = computed(() => {
   const cfg = widgetConfigRef?.value?.config;
@@ -297,6 +308,7 @@ const persistedSettings = computed(() => {
     includeVehiclesInTotal: (cfg?.includeVehiclesInTotal as boolean | undefined) ?? INCLUDE_VEHICLES_DEFAULT,
     includeVenturesInTotal: (cfg?.includeVenturesInTotal as boolean | undefined) ?? INCLUDE_VENTURES_DEFAULT,
     includeLoansInTotal: (cfg?.includeLoansInTotal as boolean | undefined) ?? INCLUDE_LOANS_DEFAULT,
+    includeMetalsInTotal: (cfg?.includeMetalsInTotal as boolean | undefined) ?? INCLUDE_METALS_DEFAULT,
     includePlanned: readIncludePlanned({ config: cfg }),
   };
 });
@@ -319,6 +331,9 @@ const includeInTotalSummary = computed(() => {
   }
   if (!persistedSettings.value.includeLoansInTotal) {
     excluded.push(t('dashboard.widgets.balanceTrend.componentsSettings.loans'));
+  }
+  if (!persistedSettings.value.includeMetalsInTotal) {
+    excluded.push(t('dashboard.widgets.balanceTrend.componentsSettings.metals'));
   }
   return excluded.length === 0
     ? t('dashboard.widgets.balanceTrend.componentsSettings.allIncluded')

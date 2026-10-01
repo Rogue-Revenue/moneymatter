@@ -8,6 +8,7 @@ import { cryptoPricesSyncCron } from './crons/crypto-prices-sync';
 import { demoCleanupCron } from './crons/demo-cleanup';
 import { demoTemplateRefreshCron } from './crons/demo-template-refresh';
 import { loadCurrencyRatesJob } from './crons/exchange-rates';
+import { preciousMetalsPricesCron } from './crons/precious-metals-prices';
 import { purgeDeletedPortfoliosCron } from './crons/purge-deleted-portfolios';
 import { securitiesDailySyncCron } from './crons/securities-daily-sync';
 import { shareInvitationsExpireCron } from './crons/share-invitations-expire';
@@ -30,6 +31,7 @@ export function initializeBackgroundJobs() {
     initializeHistoricalRates();
 
     loadCurrencyRatesJob.start();
+    preciousMetalsPricesCron.startCron();
 
     // Demo cleanup and template refresh run in all environments (dev and prod)
     demoCleanupCron.startCron();
@@ -57,6 +59,7 @@ export async function shutdownBackgroundJobs() {
   demoTemplateRefreshCron.stopCron();
   securitiesDailySyncCron.stopCron();
   cryptoPricesSyncCron.stopCron();
+  preciousMetalsPricesCron.stopCron();
   tagRemindersCron.stopCron();
   stuckPendingCheckCron.stopCron();
   subscriptionRemindersCron.stopCron();

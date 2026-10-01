@@ -675,7 +675,7 @@ export type NetWorthLiabilityKind = (typeof NET_WORTH_LIABILITY_KINDS)[number];
 // `cash` folds every deposit account (regular/savings/cash, plus a positive-balance
 // card or overdraft) into one bucket. The client derives filtered views by toggling
 // kinds, so it never refetches.
-export const NET_WORTH_ASSET_KINDS = ['cash', 'investments', 'vehicles', 'ventures'] as const;
+export const NET_WORTH_ASSET_KINDS = ['cash', 'investments', 'vehicles', 'ventures', 'preciousMetals'] as const;
 export type NetWorthAssetKind = (typeof NET_WORTH_ASSET_KINDS)[number];
 
 export interface GetNetWorthHistoryPayload extends QueryPayload {
@@ -691,12 +691,16 @@ export interface NetWorthHistoryPoint {
   // yyyy-mm-dd — the bucket-end date the snapshot is taken at. The final bucket is
   // clamped to the requested `to`, so it can cover a partial period.
   date: string;
+  /** Holdings omitted from totals because a historical spot quote or FX rate is unavailable. */
+  unvaluedMetalsCount: number;
+  /** Holdings whose latest available historical quote is older than the freshness threshold. */
+  staleMetalsCount: number;
   // Balance per asset kind, keyed by `NET_WORTH_ASSET_KINDS`. `cash` is signed —
   // it folds every deposit account (an overdrawn one subtracts) plus any card or
   // overdraft holding a positive balance. `investments` is portfolios (holdings
-  // plus uninvested cash); `vehicles` and `ventures` are their valued balances.
+  // plus uninvested cash); `vehicles`, `ventures`, and `preciousMetals` are valued separately.
   assets: Record<NetWorthAssetKind, number>;
-  // Sum of `assets` values.
+  // Sum of known `assets` values. Partial when unvaluedMetalsCount is nonzero.
   assetsTotal: number;
   // Balance per liability kind, keyed by account category. Credit-card and
   // overdraft are sums of their owing accounts only (always ≤ 0; a paid-off card
@@ -734,9 +738,8 @@ export interface NetWorthHistoryDegraded {
 
 export interface GetNetWorthHistoryResponse {
   points: NetWorthHistoryPoint[];
-  // Absent whenever the range valued cleanly, so a truthiness check on `degraded`
-  // alone decides whether to render a data-quality warning. Present only when at
-  // least one field inside it is non-empty — an empty object is never sent.
+  // Portfolio pricing/FX degradation. Metal gaps and stale quotes are counted per point.
+  // Present only when at least one field inside it is non-empty.
   degraded?: NetWorthHistoryDegraded;
 }
 

@@ -14,6 +14,8 @@ export const useSidebarNavRoutes = () => {
       route.name === ROUTES_NAMES.loans ||
       route.name === ROUTES_NAMES.loanDetail ||
       route.name === ROUTES_NAMES.investments ||
+      route.name === ROUTES_NAMES.preciousMetals ||
+      route.name === ROUTES_NAMES.preciousMetalDetail ||
       route.name === ROUTES_NAMES.portfolioDetail ||
       route.name === ROUTES_NAMES.portfolioTransactionsImport ||
       route.name === ROUTES_NAMES.venture ||

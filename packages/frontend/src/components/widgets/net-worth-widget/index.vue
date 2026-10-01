@@ -32,6 +32,7 @@ const COMPONENT_LABEL_KEYS: Record<NetWorthComponentKey, string> = {
   ventures: 'dashboard.widgets.netWorth.components.ventures',
   vehicles: 'dashboard.widgets.netWorth.components.vehicles',
   loans: 'dashboard.widgets.netWorth.components.loans',
+  metals: 'dashboard.widgets.netWorth.components.metals',
 };
 
 const MIN_TREND_BAR_HEIGHT_PERCENT = 4;
@@ -43,6 +44,7 @@ const { formatBaseCurrency } = useFormatCurrency();
 const { widgetConfigRef, settings, persistSettings, isUpdating } = useNetWorthConfig();
 
 const {
+  metalsValuationStatus,
   startNetWorth,
   endNetWorth,
   currentDelta,
@@ -185,6 +187,12 @@ const trendBars = computed(() => {
 
     <template v-else>
       <div class="flex h-full flex-col gap-3">
+        <p v-if="metalsValuationStatus.hasUnvaluedMetals" class="text-warning-text text-xs" role="status">
+          {{ $t('dashboard.widgets.netWorth.metalsValuation.partial') }}
+        </p>
+        <p v-if="metalsValuationStatus.hasStaleMetals" class="text-warning-text text-xs" role="status">
+          {{ $t('dashboard.widgets.netWorth.metalsValuation.stale') }}
+        </p>
         <div class="mb-4">
           <div class="flex items-start justify-between gap-2">
             <div>

@@ -23,6 +23,10 @@ export const deleteTransaction = withTransaction(
       const { tx, ctx } = await getWritableTransactionById({ id, userId });
       const { accountType, transferNature, transferId, refundLinked } = tx;
 
+      if (transferNature === TRANSACTION_TRANSFER_NATURE.transfer_to_precious_metals) {
+        throw new ValidationError({ message: t({ key: 'preciousMetals.manageLinkFromHolding' }) });
+      }
+
       assertPlannedWriteAllowed({ transaction: tx, callerUserId: userId });
 
       // Phase-1 guards block recipient deletes that cross into linking semantics

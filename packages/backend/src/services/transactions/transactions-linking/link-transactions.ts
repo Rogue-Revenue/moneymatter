@@ -71,6 +71,8 @@ export const linkTransactions = withTransaction(
           balanceAdjustments: 'include',
           completeness: 'all',
           where: { id: { [Op.in]: [baseTxId, oppositeTxId] } },
+          order: [['id', 'ASC']],
+          lock: true,
         });
 
         if (transactions.length !== 2) {

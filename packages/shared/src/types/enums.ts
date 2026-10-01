@@ -205,6 +205,7 @@ export enum TRANSACTION_TRANSFER_NATURE {
   transfer_out_wallet = 'transfer_out_wallet',
   transfer_to_portfolio = 'transfer_to_portfolio',
   transfer_to_venture = 'transfer_to_venture',
+  transfer_to_precious_metals = 'transfer_to_precious_metals',
   transfer_to_loan = 'transfer_to_loan',
 }
 

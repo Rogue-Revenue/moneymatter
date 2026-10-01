@@ -10,15 +10,14 @@ import {
 
 export const MAX_NET_WORTH_HISTORY_BUCKETS = endpointsTypes.MAX_NET_WORTH_HISTORY_BUCKETS;
 
-// One color per asset kind for the stacked bars, legend and tooltip dots. Fixed
-// mid-tone hues (Tailwind ~500 weight) that stay legible on both themes; cash keeps
-// a green so it still reads as the classic "assets" color. Liabilities stay red and
-// the net-worth line stays the theme foreground, so they never collide with these.
+// Colors shared by the stacked bars, legend and tooltip dots. Metals use the
+// theme's neutral tint to stay distinct from the other asset kinds on both themes.
 export const NET_WORTH_ASSET_KIND_COLORS: Record<endpointsTypes.NetWorthAssetKind, string> = {
   cash: 'rgb(16, 185, 129)', // emerald
   investments: 'rgb(59, 130, 246)', // blue
   vehicles: 'rgb(245, 158, 11)', // amber
   ventures: 'rgb(168, 85, 247)', // purple
+  preciousMetals: 'var(--muted-foreground)',
 };
 
 /** i18n label key per asset kind, shared by the filter, legend and tooltip. */
@@ -27,6 +26,7 @@ export const NET_WORTH_ASSET_KIND_LABEL_KEYS: Record<endpointsTypes.NetWorthAsse
   investments: 'netWorthHistory.assetKinds.investments',
   vehicles: 'netWorthHistory.assetKinds.vehicles',
   ventures: 'netWorthHistory.assetKinds.ventures',
+  preciousMetals: 'netWorthHistory.assetKinds.preciousMetals',
 };
 
 export interface NetWorthDisplayPoint {
@@ -42,6 +42,8 @@ export interface NetWorthDisplayPoint {
   liabilitiesTotal: number;
   /** assetsTotal + liabilitiesTotal; equals the server's netWorth when every kind is selected. */
   netWorth: number;
+  unvaluedMetalsCount: number;
+  staleMetalsCount: number;
 }
 
 /** Liability kinds with a nonzero balance anywhere in the series, in canonical order. */
@@ -54,13 +56,21 @@ export const kindsWithActivity = ({
     points.some((point) => (point.liabilities[kind] ?? 0) !== 0),
   );
 
-/** Asset kinds with a nonzero balance anywhere in the series, in canonical order. */
+/** Active asset kinds, including metals whose inventory is awaiting valuation. */
 export const assetKindsWithActivity = ({
   points,
 }: {
   points: endpointsTypes.NetWorthHistoryPoint[];
 }): endpointsTypes.NetWorthAssetKind[] =>
-  endpointsTypes.NET_WORTH_ASSET_KINDS.filter((kind) => points.some((point) => (point.assets[kind] ?? 0) !== 0));
+  endpointsTypes.NET_WORTH_ASSET_KINDS.filter((kind) =>
+    points.some(
+      (point) => (point.assets[kind] ?? 0) !== 0 || (kind === 'preciousMetals' && point.unvaluedMetalsCount > 0),
+    ),
+  );
+
+/** A missing metal quote does not turn existing inventory into an empty account. */
+export const hasNetWorthHistoryData = ({ points }: { points: endpointsTypes.NetWorthHistoryPoint[] }): boolean =>
+  points.some((point) => point.assetsTotal !== 0 || point.liabilitiesTotal !== 0 || point.unvaluedMetalsCount > 0);
 
 /**
  * Empty selection is the "all kinds" sentinel. A stored kind that has no activity
@@ -107,6 +117,8 @@ export const buildDisplayPoints = ({
       liabilitiesByKind,
       liabilitiesTotal,
       netWorth: assetsTotal + liabilitiesTotal,
+      unvaluedMetalsCount: selectedAssetKinds.includes('preciousMetals') ? point.unvaluedMetalsCount : 0,
+      staleMetalsCount: selectedAssetKinds.includes('preciousMetals') ? point.staleMetalsCount : 0,
     };
   });
 

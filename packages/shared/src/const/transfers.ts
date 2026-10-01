@@ -6,6 +6,7 @@ const IS_LINKED_NATURE = {
   [TRANSACTION_TRANSFER_NATURE.transfer_out_wallet]: false,
   [TRANSACTION_TRANSFER_NATURE.transfer_to_portfolio]: true,
   [TRANSACTION_TRANSFER_NATURE.transfer_to_venture]: true,
+  [TRANSACTION_TRANSFER_NATURE.transfer_to_precious_metals]: true,
   [TRANSACTION_TRANSFER_NATURE.transfer_to_loan]: true,
 } satisfies Record<TRANSACTION_TRANSFER_NATURE, boolean>;
 

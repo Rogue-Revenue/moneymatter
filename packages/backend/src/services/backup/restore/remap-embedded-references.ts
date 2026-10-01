@@ -18,6 +18,7 @@ import PortfolioTransfers from '@models/investments/portfolio-transfers.model';
 import Portfolios from '@models/investments/portfolios.model';
 import Notifications from '@models/notifications.model';
 import Payees from '@models/payees.model';
+import PreciousMetalEvents from '@models/precious-metals/events.model';
 import SubscriptionCandidates from '@models/subscription-candidates.model';
 import Subscriptions from '@models/subscriptions.model';
 import Tags from '@models/tags.model';
@@ -142,7 +143,7 @@ export async function remapEmbeddedReferences({
     transactionAutomations: String(TransactionAutomations.getTableName()),
   };
 
-  // Shared by the two link tables that snapshot a transaction's pre-link state.
+  // Shared by tracked-asset links that snapshot a transaction's pre-link state.
   // Only categoryId/accountId are owned ids; transferId is a shared token — leave it.
   const mutateOriginalTransactionState = ({ draft }: { draft: unknown }): void => {
     if (typeof draft !== 'object' || draft === null) return;
@@ -300,6 +301,15 @@ export async function remapEmbeddedReferences({
     insertedIds,
     transaction,
     mutate: mutateOriginalTransactionState,
+  });
+  await rewriteColumn({
+    model: PreciousMetalEvents,
+    fileName: 'precious-metal-events',
+    column: 'originalTransactionState',
+    archive,
+    insertedIds,
+    transaction,
+    mutate: ({ draft }) => mutateOriginalTransactionState({ draft: { originalTransactionState: draft } }),
   });
 }
 

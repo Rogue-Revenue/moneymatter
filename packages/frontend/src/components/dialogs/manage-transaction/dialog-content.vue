@@ -75,6 +75,7 @@ import PlannedUnlockHint from './components/planned-unlock-hint.vue';
 import PortfolioLinkedView from './components/portfolio-linked-view.vue';
 import VehicleLinkedView from './components/vehicle-linked-view.vue';
 import VentureLinkedView from './components/venture-linked-view.vue';
+import PreciousMetalsLinkedView from './components/precious-metals-linked-view.vue';
 import MarkAsRefundField from './components/mark-as-refund/mark-as-refund-field.vue';
 import AmountWithCurrencyField from './components/amount-with-currency-field.vue';
 import LabelPill from './components/label-pill.vue';
@@ -151,6 +152,10 @@ const isPortfolioLinkedView = computed(
 
 const isVentureLinkedView = computed(
   () => !!props.transaction && props.transaction.transferNature === TRANSACTION_TRANSFER_NATURE.transfer_to_venture,
+);
+
+const isPreciousMetalsLinkedView = computed(
+  () => props.transaction?.transferNature === TRANSACTION_TRANSFER_NATURE.transfer_to_precious_metals,
 );
 
 const route = useRoute();
@@ -1436,6 +1441,7 @@ onUnmounted(() => {
 
   <PortfolioLinkedView v-if="isPortfolioLinkedView" :transaction="$props.transaction!" @close-modal="closeModal" />
   <VentureLinkedView v-else-if="isVentureLinkedView" :transaction="$props.transaction!" @close-modal="closeModal" />
+  <PreciousMetalsLinkedView v-else-if="isPreciousMetalsLinkedView" @close-modal="closeModal" />
   <VehicleLinkedView v-else-if="isVehicleLinkedView" :transaction="$props.transaction!" @close-modal="closeModal" />
   <div
     v-else

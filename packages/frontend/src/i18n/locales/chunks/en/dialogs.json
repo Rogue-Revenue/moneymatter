@@ -452,6 +452,12 @@
           "update": "Couldn't update the template. Please try again.",
           "delete": "Couldn't delete the template. Please try again."
         }
+      },
+      "preciousMetalsLinked": {
+        "title": "Linked to precious metals",
+        "description": "This cash transaction is linked to a physical precious-metals inventory entry.",
+        "editHint": "Unlink it from the holding before editing or deleting this cash transaction.",
+        "open": "Open precious metals"
       }
     },
     "portfolioTransfer": {
@@ -812,6 +818,13 @@
         "whySynced": "Transactions on bank-synced accounts are imported directly from your bank. Recording a loan payment from one here would create a duplicate of the transaction your bank will send.",
         "howToLink": "Instead, once the bank transaction appears, open it and choose Link payments to attach it to this loan. That keeps a single source of truth and updates the loan balance correctly."
       }
+    },
+    "preciousMetals": {
+      "removeTitle": "Remove this recorded entry?",
+      "removeDescription": "This reverses the inventory entry and restores any linked transaction's classification. It does not delete the bank transaction. Removal is rejected if a later sale would exceed the remaining inventory.",
+      "removeConfirm": "Remove entry",
+      "unlinkTitle": "Unlink this cash transaction?",
+      "unlinkDescription": "The inventory entry remains. The cash transaction returns to its previous classification; its amount and account balance do not change."
     }
   }
 }

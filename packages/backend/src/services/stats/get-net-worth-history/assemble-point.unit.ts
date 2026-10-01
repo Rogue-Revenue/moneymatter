@@ -20,6 +20,9 @@ const assemble = (overrides: Partial<Parameters<typeof assembleNetWorthPoint>[0]
     portfolioCents: asCents(0),
     vehicleCents: asCents(0),
     ventureCents: asCents(0),
+    metalsCents: asCents(0),
+    unvaluedMetalsCount: 0,
+    staleMetalsCount: 0,
     ...overrides,
   });
 
@@ -86,11 +89,21 @@ describe('assembleNetWorthPoint', () => {
       portfolioCents: asCents(200),
       vehicleCents: asCents(300),
       ventureCents: asCents(400),
+      metalsCents: asCents(500),
     });
 
-    expect(point.assets).toEqual({ cash: 100, investments: 200, vehicles: 300, ventures: 400 });
-    expect(point.assetsTotal).toBe(1000);
-    expect(point.netWorth).toBe(1000);
+    expect(point.assets).toEqual({ cash: 100, investments: 200, vehicles: 300, ventures: 400, preciousMetals: 500 });
+    expect(point.assetsTotal).toBe(1500);
+    expect(point.netWorth).toBe(1500);
+  });
+
+  it('keeps a partial metal valuation distinct from a fully valued zero balance', () => {
+    const point = assemble({ metalsCents: asCents(250), unvaluedMetalsCount: 2, staleMetalsCount: 1 });
+
+    expect(point.assets.preciousMetals).toBe(250);
+    expect(point.netWorth).toBe(250);
+    expect(point.unvaluedMetalsCount).toBe(2);
+    expect(point.staleMetalsCount).toBe(1);
   });
 
   it('nets assets against liabilities in net worth', () => {
@@ -117,5 +130,8 @@ const _cents: Cents = assembleNetWorthPoint({
   portfolioCents: asCents(0),
   vehicleCents: asCents(0),
   ventureCents: asCents(0),
+  metalsCents: asCents(0),
+  unvaluedMetalsCount: 0,
+  staleMetalsCount: 0,
 }).netWorth;
 void _cents;

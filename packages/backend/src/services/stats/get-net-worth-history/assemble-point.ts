@@ -32,6 +32,9 @@ export const assembleNetWorthPoint = ({
   portfolioCents,
   vehicleCents,
   ventureCents,
+  metalsCents,
+  unvaluedMetalsCount,
+  staleMetalsCount,
 }: {
   date: string;
   assetAccounts: AccountSignSplit;
@@ -41,6 +44,9 @@ export const assembleNetWorthPoint = ({
   portfolioCents: Cents;
   vehicleCents: Cents;
   ventureCents: Cents;
+  metalsCents: Cents;
+  unvaluedMetalsCount: number;
+  staleMetalsCount: number;
 }): NetWorthHistoryPointCents => {
   const overdraftOwedCents = asCents(overdraft.owedCents + assetAccounts.owedCents);
 
@@ -49,6 +55,7 @@ export const assembleNetWorthPoint = ({
     investments: portfolioCents,
     vehicles: vehicleCents,
     ventures: ventureCents,
+    preciousMetals: metalsCents,
   };
   const assetsTotal = asCents(endpointsTypes.NET_WORTH_ASSET_KINDS.reduce((sum, kind) => sum + assets[kind], 0));
 
@@ -66,6 +73,8 @@ export const assembleNetWorthPoint = ({
 
   return {
     date,
+    unvaluedMetalsCount,
+    staleMetalsCount,
     assets,
     assetsTotal,
     liabilities,

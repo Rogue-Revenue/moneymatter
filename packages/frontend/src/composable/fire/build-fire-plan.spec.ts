@@ -29,7 +29,9 @@ const point = ({
   loan?: number;
 }): endpointsTypes.NetWorthHistoryPoint => ({
   date,
-  assets: { cash, investments, vehicles, ventures },
+  assets: { cash, investments, vehicles, ventures, preciousMetals: 0 },
+  unvaluedMetalsCount: 0,
+  staleMetalsCount: 0,
   assetsTotal: cash + investments + vehicles + ventures,
   liabilities: {
     [ACCOUNT_CATEGORIES.creditCard]: creditCard,

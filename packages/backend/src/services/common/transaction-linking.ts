@@ -3,6 +3,7 @@ import { Money } from '@common/types/money';
 import { t } from '@i18n/index';
 import { ValidationError } from '@js/errors';
 import PortfolioTransfers from '@models/investments/portfolio-transfers.model';
+import PreciousMetalEvents from '@models/precious-metals/events.model';
 import Transactions from '@models/transactions.model';
 import * as UsersCurrencies from '@models/users-currencies.model';
 import VentureEventLinks from '@models/venture/venture-event-links.model';
@@ -71,6 +72,8 @@ const ALREADY_TRACKED_NATURES: readonly TRANSACTION_TRANSFER_NATURE[] = [
   TRANSACTION_TRANSFER_NATURE.common_transfer,
   TRANSACTION_TRANSFER_NATURE.transfer_to_portfolio,
   TRANSACTION_TRANSFER_NATURE.transfer_to_venture,
+  TRANSACTION_TRANSFER_NATURE.transfer_to_precious_metals,
+  TRANSACTION_TRANSFER_NATURE.transfer_to_loan,
 ];
 
 /**
@@ -97,15 +100,19 @@ export async function assertNotAlreadyLinked({
     if (tx.transferNature === TRANSACTION_TRANSFER_NATURE.transfer_to_venture) {
       throw new ValidationError({ message: t({ key: 'investments.transactionAlreadyLinkedToVenture' }) });
     }
+    if (tx.transferNature === TRANSACTION_TRANSFER_NATURE.transfer_to_precious_metals) {
+      throw new ValidationError({ message: t({ key: 'preciousMetals.transactionAlreadyLinked' }) });
+    }
     throw new ValidationError({ message: t({ key: 'investments.transactionAlreadyTransfer' }) });
   }
 
   // Catch flag/link-row drift: if the row exists in either tracking table
   // regardless of nature flag, refuse the new link to avoid duplicate
   // attachments.
-  const [portfolioLink, ventureLink] = await Promise.all([
+  const [portfolioLink, ventureLink, metalLink] = await Promise.all([
     PortfolioTransfers.findOne({ where: { transactionId: tx.id }, attributes: ['id'] }),
     VentureEventLinks.findOne({ where: { transactionId: tx.id }, attributes: ['id'] }),
+    PreciousMetalEvents.findOne({ where: { transactionId: tx.id }, attributes: ['id'] }),
   ]);
 
   if (portfolioLink && allowNature !== TRANSACTION_TRANSFER_NATURE.transfer_to_portfolio) {
@@ -114,6 +121,9 @@ export async function assertNotAlreadyLinked({
 
   if (ventureLink && allowNature !== TRANSACTION_TRANSFER_NATURE.transfer_to_venture) {
     throw new ValidationError({ message: t({ key: 'investments.transactionAlreadyLinkedToVenture' }) });
+  }
+  if (metalLink && allowNature !== TRANSACTION_TRANSFER_NATURE.transfer_to_precious_metals) {
+    throw new ValidationError({ message: t({ key: 'preciousMetals.transactionAlreadyLinked' }) });
   }
 }
 

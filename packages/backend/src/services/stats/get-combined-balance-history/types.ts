@@ -21,6 +21,10 @@ export interface CombinedBalanceHistoryItem {
   vehiclesBalance: number;
   /** Sum of loan balances (stored negative), so adding it to totalBalance subtracts liabilities. */
   loansBalance: number;
+  /** Known precious-metal market values; excluded unknown values are counted below. */
+  metalsBalance: number;
+  unvaluedMetalsCount: number;
+  staleMetalsCount: number;
   totalBalance: number;
 }
 

@@ -60,6 +60,7 @@ const NATURE_LABEL_KEYS: Record<(typeof SELECTABLE_TRANSFER_NATURES)[number], st
   [TRANSACTION_TRANSFER_NATURE.transfer_out_wallet]: 'transactions.filters.transferNature.outOfWallet',
   [TRANSACTION_TRANSFER_NATURE.transfer_to_portfolio]: 'transactions.filters.transferNature.toPortfolio',
   [TRANSACTION_TRANSFER_NATURE.transfer_to_venture]: 'transactions.filters.transferNature.toVenture',
+  [TRANSACTION_TRANSFER_NATURE.transfer_to_precious_metals]: 'transactions.filters.transferNature.toPreciousMetals',
 };
 
 const isOpen = ref(false);

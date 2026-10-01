@@ -37,6 +37,7 @@ import mcpRoutes from './routes/mcp.route';
 import notificationsRoutes from './routes/notifications.route';
 import { setupOAuthMetadataRoutes } from './routes/oauth-metadata.route';
 import payeesRoutes from './routes/payees.route';
+import preciousMetalsRoutes from './routes/precious-metals.route';
 import resourceLeasesRoutes from './routes/resource-leases.route';
 import shareRoutes from './routes/share.route';
 import sseRoutes from './routes/sse.route';
@@ -198,6 +199,7 @@ export function setupRoutes(app: Express) {
   app.use(`${API_PREFIX}/share`, shareRoutes);
   app.use(`${API_PREFIX}/investments`, investmentsRoutes);
   app.use(`${API_PREFIX}/venture`, ventureRoutes);
+  app.use(`${API_PREFIX}/precious-metals`, preciousMetalsRoutes);
   app.use('/mcp', mcpRoutes);
   app.use(`${API_PREFIX}/import`, csvImportExportRoutes);
   app.use(`${API_PREFIX}/import`, statementParserRoutes);

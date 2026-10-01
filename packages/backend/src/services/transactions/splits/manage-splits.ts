@@ -1,4 +1,6 @@
+import { TRANSACTION_TRANSFER_NATURE } from '@bt/shared/types';
 import { Money } from '@common/types/money';
+import { findOrThrowNotFound } from '@common/utils/find-or-throw-not-found';
 import { t } from '@i18n/index';
 import { ValidationError } from '@js/errors';
 import RefundTransactions from '@models/refund-transactions.model';
@@ -7,9 +9,11 @@ import TransactionSplits, {
   bulkCreateSplits,
   deleteSplitsForTransaction,
 } from '@models/transaction-splits.model';
+import { findOneTransaction } from '@models/transactions-query';
 import Transactions from '@models/transactions.model';
 import * as UsersCurrencies from '@models/users-currencies.model';
 import { calculateRefAmount } from '@services/calculate-ref-amount.service';
+import { withTransaction } from '@services/common/with-transaction';
 
 import { SplitInput } from './types';
 import { assertValidSplits } from './validate-splits';
@@ -42,148 +46,163 @@ interface ManageSplitsParams {
  * row-level `userId` is the account owner. The `userId` param is still threaded
  * through as the *creator* metadata stamped on newly inserted split rows.
  */
-export const manageSplits = async ({
-  transactionId,
-  userId,
-  categoryOwnerUserId,
-  splits,
-  transactionAmount,
-  transactionCurrencyCode,
-  transactionTime,
-  transferNature,
-}: ManageSplitsParams): Promise<TransactionSplits[]> => {
-  // Fetch existing splits — keyed by transactionId; userId is creator metadata only.
-  const existingSplits = await TransactionSplits.findAll({
-    where: { transactionId },
-  });
-
-  // Build a map of categoryId -> refund info for existing splits.
-  // `refundIds` holds the RefundTransactions row ids: the old splits get deleted further
-  // down, and the FK is ON DELETE SET NULL, so `splitId` stops identifying these rows.
-  const refundsByCategoryId = new Map<
-    string,
-    {
-      totalRefundedRefAmount: Money;
-      refundIds: string[];
-      refundAmounts: { amount: Money; currencyCode: string }[];
-    }
-  >();
-
-  // Query refunds for each split that exists
-  for (const existingSplit of existingSplits) {
-    const refunds = await RefundTransactions.findAll({
-      where: { splitId: existingSplit.id },
-      include: [{ model: Transactions, as: 'refundTransaction' }],
-    });
-
-    if (refunds.length > 0) {
-      const totalRefunded = Money.sum(refunds.map((r) => r.refundTransaction.refAmount.abs()));
-      const refundAmounts = refunds.map((r) => ({
-        amount: r.refundTransaction.amount.abs(),
-        currencyCode: r.refundTransaction.currencyCode,
-      }));
-      refundsByCategoryId.set(existingSplit.categoryId, {
-        totalRefundedRefAmount: totalRefunded,
-        refundIds: refunds.map((r) => r.id),
-        refundAmounts,
-      });
-    }
-  }
-
-  // If no splits provided, relink any split-level refunds to main transaction
-  if (!splits || splits.length === 0) {
-    // Move refunds from split-level to transaction-level (set splitId to null)
-    for (const { refundIds } of refundsByCategoryId.values()) {
-      await RefundTransactions.update({ splitId: null }, { where: { id: refundIds } });
-    }
-    await deleteSplitsForTransaction({ transactionId });
-    return [];
-  }
-
-  // Validate splits — category ownership lookup uses the account owner's userId so
-  // recipient writes on shared accounts validate against the owner's category set.
-  await assertValidSplits({
+export const manageSplits = withTransaction(
+  async ({
+    transactionId,
+    userId,
+    categoryOwnerUserId,
     splits,
     transactionAmount,
-    categoryOwnerUserId: categoryOwnerUserId ?? userId,
-    transferNature: transferNature as Parameters<typeof assertValidSplits>[0]['transferNature'],
-  });
+    transactionCurrencyCode,
+    transactionTime,
+    transferNature,
+  }: ManageSplitsParams): Promise<TransactionSplits[]> => {
+    const transaction = await findOrThrowNotFound({
+      query: findOneTransaction({
+        planned: 'include',
+        access: 'unscoped-internal',
+        balanceAdjustments: 'include',
+        where: { id: transactionId },
+        lock: true,
+      }),
+      message: t({ key: 'transactions.notFound' }),
+    });
+    if (transaction.transferNature === TRANSACTION_TRANSFER_NATURE.transfer_to_precious_metals) {
+      throw new ValidationError({ message: t({ key: 'preciousMetals.manageLinkFromHolding' }) });
+    }
+    // Fetch existing splits — keyed by transactionId; userId is creator metadata only.
+    const existingSplits = await TransactionSplits.findAll({
+      where: { transactionId },
+    });
 
-  // Get user's base currency for refAmount calculation
-  const { currency: baseCurrency } = await UsersCurrencies.getCurrency({
-    userId,
-    isDefaultCurrency: true,
-  });
-
-  const isBaseCurrency = transactionCurrencyCode === baseCurrency.code;
-
-  // Prepare split payloads with calculated refAmounts
-  const splitPayloads: CreateSplitPayload[] = await Promise.all(
-    splits.map(async (split) => {
-      let refAmount = split.amount;
-
-      // Calculate refAmount if transaction is in a different currency
-      if (!isBaseCurrency) {
-        if (split.refAmount !== undefined) {
-          // Use provided refAmount if available
-          refAmount = split.refAmount;
-        } else {
-          // Calculate refAmount based on exchange rate
-          refAmount = await calculateRefAmount({
-            userId,
-            amount: split.amount,
-            baseCode: transactionCurrencyCode,
-            quoteCode: baseCurrency.code,
-            date: transactionTime,
-          });
-        }
+    // Build a map of categoryId -> refund info for existing splits.
+    // `refundIds` holds the RefundTransactions row ids: the old splits get deleted further
+    // down, and the FK is ON DELETE SET NULL, so `splitId` stops identifying these rows.
+    const refundsByCategoryId = new Map<
+      string,
+      {
+        totalRefundedRefAmount: Money;
+        refundIds: string[];
+        refundAmounts: { amount: Money; currencyCode: string }[];
       }
+    >();
 
-      // Validate: if this category had refunds, new refAmount must be >= total refunded
-      const existingRefundInfo = refundsByCategoryId.get(split.categoryId);
-      if (existingRefundInfo && refAmount.lessThan(existingRefundInfo.totalRefundedRefAmount)) {
-        // Format refund amounts in their original currencies for user-friendly display
-        const refundDescriptions = existingRefundInfo.refundAmounts.map(
-          (r) => `${r.amount.toNumber().toFixed(2)} ${r.currencyCode}`,
-        );
-        const refundsText = refundDescriptions.join(', ');
-        throw new ValidationError({
-          message: t({ key: 'transactions.splits.cannotReduceBelowRefunded', variables: { refundsText } }),
+    // Query refunds for each split that exists
+    for (const existingSplit of existingSplits) {
+      const refunds = await RefundTransactions.findAll({
+        where: { splitId: existingSplit.id },
+        include: [{ model: Transactions, as: 'refundTransaction' }],
+      });
+
+      if (refunds.length > 0) {
+        const totalRefunded = Money.sum(refunds.map((r) => r.refundTransaction.refAmount.abs()));
+        const refundAmounts = refunds.map((r) => ({
+          amount: r.refundTransaction.amount.abs(),
+          currencyCode: r.refundTransaction.currencyCode,
+        }));
+        refundsByCategoryId.set(existingSplit.categoryId, {
+          totalRefundedRefAmount: totalRefunded,
+          refundIds: refunds.map((r) => r.id),
+          refundAmounts,
         });
       }
-
-      return {
-        transactionId,
-        userId,
-        categoryId: split.categoryId,
-        amount: split.amount,
-        refAmount,
-        note: split.note || null,
-      };
-    }),
-  );
-
-  // If a category with refunds is being removed, relink those refunds to main transaction
-  for (const [categoryId, { refundIds }] of refundsByCategoryId) {
-    const stillExists = splits.some((s) => s.categoryId === categoryId);
-    if (!stillExists) {
-      // Move refunds from this split to transaction-level (set splitId to null)
-      await RefundTransactions.update({ splitId: null }, { where: { id: refundIds } });
     }
-  }
 
-  // Delete existing splits and create new ones (atomic replacement)
-  await deleteSplitsForTransaction({ transactionId });
-  const createdSplits = await bulkCreateSplits({ data: splitPayloads });
-
-  // Point each refund at the freshly inserted split carrying its category. Categories that
-  // were dropped from the payload have no new split, so their refunds stay transaction-level.
-  for (const newSplit of createdSplits) {
-    const existingRefundInfo = refundsByCategoryId.get(newSplit.categoryId);
-    if (existingRefundInfo) {
-      await RefundTransactions.update({ splitId: newSplit.id }, { where: { id: existingRefundInfo.refundIds } });
+    // If no splits provided, relink any split-level refunds to main transaction
+    if (!splits || splits.length === 0) {
+      // Move refunds from split-level to transaction-level (set splitId to null)
+      for (const { refundIds } of refundsByCategoryId.values()) {
+        await RefundTransactions.update({ splitId: null }, { where: { id: refundIds } });
+      }
+      await deleteSplitsForTransaction({ transactionId });
+      return [];
     }
-  }
 
-  return createdSplits;
-};
+    // Validate splits — category ownership lookup uses the account owner's userId so
+    // recipient writes on shared accounts validate against the owner's category set.
+    await assertValidSplits({
+      splits,
+      transactionAmount,
+      categoryOwnerUserId: categoryOwnerUserId ?? userId,
+      transferNature: transferNature as Parameters<typeof assertValidSplits>[0]['transferNature'],
+    });
+
+    // Get user's base currency for refAmount calculation
+    const { currency: baseCurrency } = await UsersCurrencies.getCurrency({
+      userId,
+      isDefaultCurrency: true,
+    });
+
+    const isBaseCurrency = transactionCurrencyCode === baseCurrency.code;
+
+    // Prepare split payloads with calculated refAmounts
+    const splitPayloads: CreateSplitPayload[] = await Promise.all(
+      splits.map(async (split) => {
+        let refAmount = split.amount;
+
+        // Calculate refAmount if transaction is in a different currency
+        if (!isBaseCurrency) {
+          if (split.refAmount !== undefined) {
+            // Use provided refAmount if available
+            refAmount = split.refAmount;
+          } else {
+            // Calculate refAmount based on exchange rate
+            refAmount = await calculateRefAmount({
+              userId,
+              amount: split.amount,
+              baseCode: transactionCurrencyCode,
+              quoteCode: baseCurrency.code,
+              date: transactionTime,
+            });
+          }
+        }
+
+        // Validate: if this category had refunds, new refAmount must be >= total refunded
+        const existingRefundInfo = refundsByCategoryId.get(split.categoryId);
+        if (existingRefundInfo && refAmount.lessThan(existingRefundInfo.totalRefundedRefAmount)) {
+          // Format refund amounts in their original currencies for user-friendly display
+          const refundDescriptions = existingRefundInfo.refundAmounts.map(
+            (r) => `${r.amount.toNumber().toFixed(2)} ${r.currencyCode}`,
+          );
+          const refundsText = refundDescriptions.join(', ');
+          throw new ValidationError({
+            message: t({ key: 'transactions.splits.cannotReduceBelowRefunded', variables: { refundsText } }),
+          });
+        }
+
+        return {
+          transactionId,
+          userId,
+          categoryId: split.categoryId,
+          amount: split.amount,
+          refAmount,
+          note: split.note || null,
+        };
+      }),
+    );
+
+    // If a category with refunds is being removed, relink those refunds to main transaction
+    for (const [categoryId, { refundIds }] of refundsByCategoryId) {
+      const stillExists = splits.some((s) => s.categoryId === categoryId);
+      if (!stillExists) {
+        // Move refunds from this split to transaction-level (set splitId to null)
+        await RefundTransactions.update({ splitId: null }, { where: { id: refundIds } });
+      }
+    }
+
+    // Delete existing splits and create new ones (atomic replacement)
+    await deleteSplitsForTransaction({ transactionId });
+    const createdSplits = await bulkCreateSplits({ data: splitPayloads });
+
+    // Point each refund at the freshly inserted split carrying its category. Categories that
+    // were dropped from the payload have no new split, so their refunds stay transaction-level.
+    for (const newSplit of createdSplits) {
+      const existingRefundInfo = refundsByCategoryId.get(newSplit.categoryId);
+      if (existingRefundInfo) {
+        await RefundTransactions.update({ splitId: newSplit.id }, { where: { id: existingRefundInfo.refundIds } });
+      }
+    }
+
+    return createdSplits;
+  },
+);

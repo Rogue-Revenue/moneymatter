@@ -4,14 +4,16 @@ import type { Cents, endpointsTypes } from '@bt/shared/types';
 export interface NetWorthHistoryPointCents {
   /** yyyy-MM-dd — the bucket-end date the snapshot is taken at. */
   date: string;
+  unvaluedMetalsCount: number;
+  staleMetalsCount: number;
   /**
    * Balance per asset kind. `cash` folds every non-liability account (signed, so
    * an overdrawn one subtracts) plus any credit-card/overdraft account holding a
    * positive balance; `investments` is portfolios (holdings + cash); `vehicles`
-   * and `ventures` are their valued balances.
+   * and `ventures` are their valued balances; `preciousMetals` includes known spot values.
    */
   assets: Record<endpointsTypes.NetWorthAssetKind, Cents>;
-  /** Sum of the `assets` values. */
+  /** Sum of known asset values; partial when unvaluedMetalsCount is nonzero. */
   assetsTotal: Cents;
   /**
    * Balance per liability account category. Credit-card and overdraft carry only

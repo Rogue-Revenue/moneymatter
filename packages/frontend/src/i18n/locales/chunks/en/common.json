@@ -157,7 +157,8 @@
         "hiddenAccount": "Hidden account",
         "selectRow": "Select transaction",
         "unselectableReasons": {
-          "sharedAccount": "Can't be selected: this transaction is on an account shared with you, and only its owner can edit it."
+          "sharedAccount": "Can't be selected: this transaction is on an account shared with you, and only its owner can edit it.",
+          "preciousMetals": "Unlink this cash transaction from its precious-metals holding before editing or deleting it."
         }
       }
     },

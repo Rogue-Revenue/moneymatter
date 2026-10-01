@@ -65,6 +65,13 @@ const validateTransaction = async (
 ) => {
   if (newData.id !== prevData.id) throw new ValidationError({ message: t({ key: 'transactions.idCannotBeChanged' }) });
 
+  if (
+    prevData.transferNature === TRANSACTION_TRANSFER_NATURE.transfer_to_precious_metals ||
+    newData.transferNature === TRANSACTION_TRANSFER_NATURE.transfer_to_precious_metals
+  ) {
+    throw new ValidationError({ message: t({ key: 'preciousMetals.manageLinkFromHolding' }) });
+  }
+
   // Check the account type, not the transaction type
   // A system transaction in a monobank account should be treated as external.
   // Auth has already been gated by the parent `updateTransaction`, so we look up the

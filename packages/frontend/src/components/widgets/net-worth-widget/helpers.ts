@@ -7,7 +7,7 @@ import { type NetWorthIncludeSettings, composeNetWorth } from '../net-worth-comp
 
 export type { NetWorthIncludeSettings };
 
-export type NetWorthComponentKey = 'ventures' | 'vehicles' | 'loans';
+export type NetWorthComponentKey = 'ventures' | 'vehicles' | 'loans' | 'metals';
 
 type NetWorthTrendBar = { label: string; shortLabel: string } & (
   | { hasData: false }
@@ -112,6 +112,7 @@ export function readNetWorthSettings({
     includeVentures: read(config?.includeVentures),
     includeVehicles: read(config?.includeVehicles),
     includeLoans: read(config?.includeLoans),
+    includeMetals: read(config?.includeMetals),
   };
 }
 
@@ -266,5 +267,6 @@ export function excludedComponents({ settings }: { settings: NetWorthIncludeSett
   if (!settings.includeVentures) excluded.push('ventures');
   if (!settings.includeVehicles) excluded.push('vehicles');
   if (!settings.includeLoans) excluded.push('loans');
+  if (!settings.includeMetals) excluded.push('metals');
   return excluded;
 }

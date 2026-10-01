@@ -8,7 +8,12 @@ import {
 import { describe, expect, it } from 'vitest';
 import { type Ref, nextTick, ref } from 'vue';
 
-import { getVanishedSelectedIds, sumSelectedTotals, useTransactionSelection } from './transaction-selection';
+import {
+  getBulkUnselectableReason,
+  getVanishedSelectedIds,
+  sumSelectedTotals,
+  useTransactionSelection,
+} from './transaction-selection';
 
 const buildTx = (overrides: Partial<TransactionModel>): TransactionModel =>
   ({
@@ -17,6 +22,19 @@ const buildTx = (overrides: Partial<TransactionModel>): TransactionModel =>
     splits: undefined,
     ...overrides,
   }) as TransactionModel;
+
+describe('managed asset bulk selection', () => {
+  it('locks a linked metals cash entry until the user unlinks it from the holding', () => {
+    const tx = buildTx({ transferNature: TRANSACTION_TRANSFER_NATURE.transfer_to_precious_metals });
+    expect(getBulkUnselectableReason({ tx, account: undefined })).toBe('preciousMetals');
+    expect(
+      getBulkUnselectableReason({
+        tx: { ...tx, transferNature: TRANSACTION_TRANSFER_NATURE.not_transfer },
+        account: undefined,
+      }),
+    ).toBeNull();
+  });
+});
 
 describe('useTransactionSelection', () => {
   it('split parents are selectable', () => {
@@ -276,6 +294,7 @@ describe('sumSelectedTotals', () => {
     ['transfer_to_loan', TRANSACTION_TRANSFER_NATURE.transfer_to_loan],
     ['transfer_to_portfolio', TRANSACTION_TRANSFER_NATURE.transfer_to_portfolio],
     ['transfer_to_venture', TRANSACTION_TRANSFER_NATURE.transfer_to_venture],
+    ['transfer_to_precious_metals', TRANSACTION_TRANSFER_NATURE.transfer_to_precious_metals],
   ])('keeps %s out of income/expense and reports it as a transfer', (_name, transferNature) => {
     const transactions = [
       buildAmountTx({ id: '1', transactionType: TRANSACTION_TYPES.expense, refAmount: 4350, transferNature }),

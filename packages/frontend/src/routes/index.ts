@@ -82,6 +82,18 @@ const routes: RouteRecordRaw[] = [
         meta: { i18nChunks: ['pages/investments'] as I18nChunkName[] },
       },
       {
+        path: '/precious-metals',
+        name: ROUTES_NAMES.preciousMetals,
+        component: () => import('@/pages/precious-metals/index.vue'),
+        meta: { i18nChunks: ['pages/precious-metals'] as I18nChunkName[] },
+      },
+      {
+        path: '/precious-metals/:id',
+        name: ROUTES_NAMES.preciousMetalDetail,
+        component: () => import('@/pages/precious-metals/detail.vue'),
+        meta: { i18nChunks: ['pages/precious-metals', 'pages/transactions'] as I18nChunkName[] },
+      },
+      {
         path: '/portfolios/:portfolioId',
         name: ROUTES_NAMES.portfolioDetail,
         component: () => import('@/pages/portfolios/portfolio-detail.vue'),

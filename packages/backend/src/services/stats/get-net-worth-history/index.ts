@@ -5,6 +5,7 @@ import { logger } from '@js/utils';
 import Accounts from '@models/accounts.model';
 import UsersCurrencies from '@models/users-currencies.model';
 import { withTransaction } from '@services/common/with-transaction';
+import { calculateMetalsBalanceHistory } from '@services/precious-metals/balance-history';
 import { calculateVehiclesBalanceHistory } from '@services/stats/calculate-vehicles-balance-history';
 import { calculateVentureBalanceHistory } from '@services/stats/calculate-venture-balance-history';
 import { getAggregatedBalanceHistory, getPerAccountBalanceHistory } from '@services/stats/get-balance-history';
@@ -233,6 +234,7 @@ export const getNetWorthHistory = async ({
     vehicleValuesByDate,
     portfolioValuation,
     ventureValuesByDate,
+    metalsByDate,
     creditLimitCentsByAccount,
   ] = await withTransaction(async () => {
     // Shared by every sub-calculator that converts to base currency — fetch once.
@@ -296,6 +298,7 @@ export const getNetWorthHistory = async ({
       calculateVehiclesBalanceHistory({ userId, maxDate, uniqueDates: snapshotDates, userBaseCurrencyPromise }),
       calculatePortfolioValueByDate({ userId, snapshotDates, denseDates, userBaseCurrencyPromise }),
       calculateVentureBalanceHistory({ userId, minDate, maxDate, uniqueDates: snapshotDates, userBaseCurrencyPromise }),
+      calculateMetalsBalanceHistory({ userId, maxDate, uniqueDates: snapshotDates, userBaseCurrencyPromise }),
       includeCreditLimit ? getCreditLimitCentsByAccount({ userId, accountScope: 'owned' }) : new Map<string, Cents>(),
     ]);
   })();
@@ -336,6 +339,9 @@ export const getNetWorthHistory = async ({
       ),
       vehicleCents: asCents(readAssetValue({ map: vehicleValuesByDate, dateStr, label: 'vehicle', userId })),
       ventureCents: asCents(readAssetValue({ map: ventureValuesByDate, dateStr, label: 'venture', userId })),
+      metalsCents: metalsByDate?.get(dateStr)?.value ?? asCents(0),
+      unvaluedMetalsCount: metalsByDate?.get(dateStr)?.unvaluedMetalsCount ?? 0,
+      staleMetalsCount: metalsByDate?.get(dateStr)?.staleMetalsCount ?? 0,
     }),
   );
 

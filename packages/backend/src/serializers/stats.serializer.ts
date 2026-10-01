@@ -271,6 +271,9 @@ interface CombinedBalanceHistoryItemApiResponse {
   venturesBalance: number;
   vehiclesBalance: number;
   loansBalance: number;
+  metalsBalance: number;
+  unvaluedMetalsCount: number;
+  staleMetalsCount: number;
   totalBalance: number;
 }
 
@@ -287,6 +290,9 @@ export function serializeCombinedBalanceHistory(
     venturesBalance: centsToApiDecimal(item.venturesBalance),
     vehiclesBalance: centsToApiDecimal(item.vehiclesBalance),
     loansBalance: centsToApiDecimal(item.loansBalance),
+    metalsBalance: centsToApiDecimal(item.metalsBalance),
+    unvaluedMetalsCount: item.unvaluedMetalsCount,
+    staleMetalsCount: item.staleMetalsCount,
     totalBalance: centsToApiDecimal(item.totalBalance),
   }));
 }
@@ -362,6 +368,8 @@ export function serializeNetWorthHistory(
   return {
     points: result.points.map((point) => ({
       date: point.date,
+      unvaluedMetalsCount: point.unvaluedMetalsCount,
+      staleMetalsCount: point.staleMetalsCount,
       assets: decimalizeValues(point.assets),
       assetsTotal: centsToApiDecimal(point.assetsTotal),
       liabilities: decimalizeValues(point.liabilities),

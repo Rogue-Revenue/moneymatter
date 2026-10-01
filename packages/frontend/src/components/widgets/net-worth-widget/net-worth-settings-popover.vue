@@ -14,6 +14,15 @@
 
         <div class="flex flex-col p-2">
           <div class="flex items-center justify-between gap-2 rounded-md px-2 py-2">
+            <span class="text-sm font-medium">{{ $t('dashboard.widgets.netWorth.settings.metals') }}</span>
+            <Switch
+              :model-value="settings.includeMetals"
+              :disabled="isUpdating"
+              @update:model-value="(value: boolean) => emit('save', { patch: { includeMetals: value } })"
+            />
+          </div>
+
+          <div class="flex items-center justify-between gap-2 rounded-md px-2 py-2">
             <span class="text-sm font-medium">{{ $t('dashboard.widgets.netWorth.settings.loans') }}</span>
             <Switch
               :model-value="settings.includeLoans"

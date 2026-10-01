@@ -27,6 +27,8 @@ const EXPECTED_GUARDED_COLUMNS: Record<string, string[]> = {
   payees: ['defaultCategoryId'],
   'portfolio-balances': ['portfolioId'],
   'portfolio-transfers': ['fromAccountId', 'toAccountId', 'fromPortfolioId', 'toPortfolioId', 'transactionId'],
+  'precious-metal-events': ['holdingId', 'transactionId'],
+  'precious-metal-quotes': ['holdingId'],
   'refund-transactions': ['originalTxId', 'refundTxId', 'splitId'],
   'subscription-candidates': ['accountId', 'subscriptionId'],
   'subscription-period-notifications': ['periodId'],

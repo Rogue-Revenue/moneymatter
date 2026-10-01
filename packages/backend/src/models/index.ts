@@ -33,6 +33,9 @@ import PayeeAliasesModel from './payee-aliases.model';
 import PayeeIgnoredNamesModel from './payee-ignored-names.model';
 import PayeeTagsModel from './payee-tags.model';
 import PayeesModel from './payees.model';
+import PreciousMetalEvents from './precious-metals/events.model';
+import PreciousMetalHoldings from './precious-metals/holdings.model';
+import PreciousMetalQuotes from './precious-metals/quotes.model';
 import RefundTransactionsModel from './refund-transactions.model';
 import ResourceSharesModel from './resource-shares.model';
 import ShareInvitationsModel from './share-invitations.model';
@@ -84,6 +87,9 @@ const DBConfig: Record<string, unknown> = {
 
 const models = [
   UsersModel,
+  PreciousMetalHoldings,
+  PreciousMetalEvents,
+  PreciousMetalQuotes,
   AccountsModel,
   BalancesModel,
   BankDataProviderConnectionsModel,

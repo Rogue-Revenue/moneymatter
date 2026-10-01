@@ -592,5 +592,19 @@
     "incompleteInvoice": "Could not read a vendor, total amount and date from this invoice.",
     "pdfWithoutText": "Custom AI connections can't receive PDF files directly, and this one couldn't be opened to convert it (for example, it's password-protected). Convert it to an image (PNG or JPEG), such as a screenshot of the invoice, and upload that instead.",
     "noFileUploaded": "No file was uploaded."
+  },
+  "preciousMetals": {
+    "holdingNotFound": "Precious-metal holding not found.",
+    "eventNotFound": "Precious-metal activity not found.",
+    "openingCannotLink": "Opening holdings cannot link to a cash transaction. Record a purchase or sale to link cash.",
+    "insufficientInventory": "This activity would sell more metal than was held on that date.",
+    "invalidPhysicalSpec": "Enter a positive quantity and weight, and purity greater than zero and at most one.",
+    "transactionAlreadyLinked": "This transaction is already linked to a precious-metal activity.",
+    "manageLinkFromHolding": "Unlink this transaction from its precious-metal holding before editing or deleting it. Manage metal links from the holding.",
+    "eventCannotBeLinked": "Only purchases or sales with a known cash total can link to a transaction.",
+    "eventAlreadyLinked": "This activity is already linked to a transaction. Unlink it first.",
+    "transactionNotEligible": "Choose an actual, unlinked transaction without refunds, splits, balance adjustments or a manual budget assignment.",
+    "transactionMustMatch": "The transaction must match the activity currency, cash total and payment direction.",
+    "linkSnapshotMissing": "The original transaction classification is unavailable, so this link cannot be removed safely."
   }
 }

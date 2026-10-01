@@ -13,6 +13,10 @@
       "attemptedLabel": "You tried to visit: ",
       "goBack": "Go back",
       "goHome": "Take me home"
+    },
+    "preciousMetals": {
+      "load": "Could not load precious metals. Try again.",
+      "save": "Could not save this change. Try again."
     }
   }
 }

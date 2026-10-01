@@ -193,8 +193,12 @@
       <div
         :class="[
           'text-amount text-right text-sm whitespace-nowrap',
-          transaction.transactionType === TRANSACTION_TYPES.income && 'text-app-income-color',
-          transaction.transactionType === TRANSACTION_TYPES.expense && 'text-app-expense-color',
+          transaction.transferNature === TRANSACTION_TRANSFER_NATURE.transfer_to_precious_metals
+            ? 'text-app-transfer-color'
+            : transaction.transactionType === TRANSACTION_TYPES.income && 'text-app-income-color',
+          transaction.transferNature !== TRANSACTION_TRANSFER_NATURE.transfer_to_precious_metals &&
+            transaction.transactionType === TRANSACTION_TYPES.expense &&
+            'text-app-expense-color',
         ]"
       >
         {{ formattedAmount }}
@@ -204,8 +208,12 @@
       <div
         :class="[
           'text-amount text-right',
-          transaction.transactionType === TRANSACTION_TYPES.income && 'text-app-income-color',
-          transaction.transactionType === TRANSACTION_TYPES.expense && 'text-app-expense-color',
+          transaction.transferNature === TRANSACTION_TRANSFER_NATURE.transfer_to_precious_metals
+            ? 'text-app-transfer-color'
+            : transaction.transactionType === TRANSACTION_TYPES.income && 'text-app-income-color',
+          transaction.transferNature !== TRANSACTION_TRANSFER_NATURE.transfer_to_precious_metals &&
+            transaction.transactionType === TRANSACTION_TYPES.expense &&
+            'text-app-expense-color',
         ]"
       >
         {{ formattedAmount }}
@@ -304,7 +312,8 @@ const transaction = computed(() => props.tx);
 const isTransferTransaction = computed(
   () =>
     isTwoLegTransfer(transaction.value.transferNature) ||
-    transaction.value.transferNature === TRANSACTION_TRANSFER_NATURE.transfer_out_wallet,
+    transaction.value.transferNature === TRANSACTION_TRANSFER_NATURE.transfer_out_wallet ||
+    transaction.value.transferNature === TRANSACTION_TRANSFER_NATURE.transfer_to_precious_metals,
 );
 
 const { data: oppositeTransferTransaction, isLoading: isLoadingOpposite } = useOppositeTxRecord(() => props.tx);
@@ -382,6 +391,9 @@ const transferSeparator = computed(() =>
 // the owner. Fall back to a labeled placeholder rather than rendering "undefined".
 const transferFromLabel = computed(() => accountFrom.value?.name ?? t('common.transactions.record.hiddenAccount'));
 const transferToLabel = computed(() => {
+  if (transaction.value.transferNature === TRANSACTION_TRANSFER_NATURE.transfer_to_precious_metals) {
+    return t('navigation.preciousMetals');
+  }
   if (transaction.value.transferNature === TRANSACTION_TRANSFER_NATURE.transfer_out_wallet) {
     return t('common.outOfWallet');
   }

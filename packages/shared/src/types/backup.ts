@@ -50,6 +50,7 @@ export const BACKUP_FILE_NAMES = [
   'portfolios',
   'venture-deals',
   'vehicles',
+  'precious-metal-holdings',
   'loan-details',
   'transaction-groups',
   'budgets',
@@ -62,6 +63,7 @@ export const BACKUP_FILE_NAMES = [
   'portfolio-transfers',
   'venture-events',
   'subscription-candidates',
+  'precious-metal-quotes',
   // tier 5
   'transaction-splits',
   'transaction-tags',
@@ -75,6 +77,7 @@ export const BACKUP_FILE_NAMES = [
   'subscription-periods',
   'transfer-suggestion-dismissals',
   'venture-event-links',
+  'precious-metal-events',
   // tier 6
   'subscription-period-notifications',
   // exported but skipped on restore (counterpart users don't exist cross-instance)

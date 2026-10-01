@@ -7,6 +7,7 @@ export interface NetWorthIncludeSettings {
   includeVentures: boolean;
   includeVehicles: boolean;
   includeLoans: boolean;
+  includeMetals: boolean;
 }
 
 export interface NetWorthComponentBalances {
@@ -15,7 +16,40 @@ export interface NetWorthComponentBalances {
   venturesBalance: number;
   vehiclesBalance: number;
   loansBalance: number;
+  metalsBalance: number;
   totalBalance: number;
+}
+
+export interface MetalsValuationCounts {
+  unvaluedMetalsCount: number;
+  staleMetalsCount: number;
+}
+
+/** Only valuations contributing to the displayed totals need a warning. */
+export function getMetalsValuationStatus({
+  points,
+  includeMetals,
+}: {
+  points: MetalsValuationCounts[];
+  includeMetals: boolean;
+}): { hasUnvaluedMetals: boolean; hasStaleMetals: boolean } {
+  return {
+    hasUnvaluedMetals: includeMetals && points.some((point) => point.unvaluedMetalsCount > 0),
+    hasStaleMetals: includeMetals && points.some((point) => point.staleMetalsCount > 0),
+  };
+}
+
+/** Inventory awaiting a quote is still data even when the known total is zero. */
+export function hasNetWorthData({
+  points,
+  settings,
+}: {
+  points: (NetWorthComponentBalances & MetalsValuationCounts)[];
+  settings: NetWorthIncludeSettings;
+}): boolean {
+  return points.some(
+    (point) => composeNetWorth({ point, settings }) !== 0 || (settings.includeMetals && point.unvaluedMetalsCount > 0),
+  );
 }
 
 export function composeNetWorth({
@@ -26,7 +60,7 @@ export function composeNetWorth({
   settings: NetWorthIncludeSettings;
 }): number {
   // With nothing excluded the server-computed total is authoritative.
-  if (settings.includeVentures && settings.includeVehicles && settings.includeLoans) {
+  if (settings.includeVentures && settings.includeVehicles && settings.includeLoans && settings.includeMetals) {
     return point.totalBalance;
   }
 
@@ -35,5 +69,6 @@ export function composeNetWorth({
   if (settings.includeVehicles) total += point.vehiclesBalance;
   // Loan balances are negative: including them subtracts debt, excluding them ignores it.
   if (settings.includeLoans) total += point.loansBalance;
+  if (settings.includeMetals) total += point.metalsBalance;
   return total;
 }

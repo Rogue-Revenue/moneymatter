@@ -13,6 +13,7 @@ import {
   computePeriodChange,
   countBuckets,
   disabledGranularities,
+  hasNetWorthHistoryData,
   kindsWithActivity,
   resolveSelectedKinds,
 } from './net-worth-history-derivations';
@@ -24,6 +25,7 @@ const OVERDRAFT = ACCOUNT_CATEGORIES.overdraft as endpointsTypes.NetWorthLiabili
 const CASH: endpointsTypes.NetWorthAssetKind = 'cash';
 const INVESTMENTS: endpointsTypes.NetWorthAssetKind = 'investments';
 const VEHICLES: endpointsTypes.NetWorthAssetKind = 'vehicles';
+const METALS: endpointsTypes.NetWorthAssetKind = 'preciousMetals';
 const ALL_ASSET_KINDS: endpointsTypes.NetWorthAssetKind[] = [...endpointsTypes.NET_WORTH_ASSET_KINDS];
 
 const buildPoint = ({
@@ -33,6 +35,9 @@ const buildPoint = ({
   investments = 0,
   vehicles = 0,
   ventures = 0,
+  preciousMetals = 0,
+  unvaluedMetalsCount = 0,
+  staleMetalsCount = 0,
   creditCard = 0,
   loan = 0,
   overdraft = 0,
@@ -42,12 +47,15 @@ const buildPoint = ({
   investments?: number;
   vehicles?: number;
   ventures?: number;
+  preciousMetals?: number;
+  unvaluedMetalsCount?: number;
+  staleMetalsCount?: number;
   creditCard?: number;
   loan?: number;
   overdraft?: number;
 }): endpointsTypes.NetWorthHistoryPoint => {
-  const assetsByKind = { cash: assets, investments, vehicles, ventures };
-  const assetsTotal = assets + investments + vehicles + ventures;
+  const assetsByKind = { cash: assets, investments, vehicles, ventures, preciousMetals };
+  const assetsTotal = assets + investments + vehicles + ventures + preciousMetals;
   const liabilitiesTotal = creditCard + loan + overdraft;
   return {
     date,
@@ -56,6 +64,8 @@ const buildPoint = ({
     liabilities: { 'credit-card': creditCard, loan, overdraft },
     liabilitiesTotal,
     netWorth: assetsTotal + liabilitiesTotal,
+    unvaluedMetalsCount,
+    staleMetalsCount,
   };
 };
 
@@ -98,6 +108,24 @@ describe('assetKindsWithActivity', () => {
   it('returns empty for an all-zero series', () => {
     expect(assetKindsWithActivity({ points: [buildPoint({ date: '2026-01-31' })] })).toEqual([]);
   });
+
+  it('keeps metals selectable when inventory has no quote yet', () => {
+    expect(assetKindsWithActivity({ points: [buildPoint({ date: '2026-01-31', unvaluedMetalsCount: 1 })] })).toEqual([
+      METALS,
+    ]);
+  });
+});
+
+describe('hasNetWorthHistoryData', () => {
+  it('shows inventory awaiting valuation instead of an empty state', () => {
+    expect(hasNetWorthHistoryData({ points: [buildPoint({ date: '2026-01-31', unvaluedMetalsCount: 1 })] })).toBe(true);
+    expect(hasNetWorthHistoryData({ points: [buildPoint({ date: '2026-01-31', preciousMetals: 250 })] })).toBe(true);
+  });
+
+  it('recognizes empty and all-zero histories', () => {
+    expect(hasNetWorthHistoryData({ points: [] })).toBe(false);
+    expect(hasNetWorthHistoryData({ points: [buildPoint({ date: '2026-01-31' })] })).toBe(false);
+  });
 });
 
 describe('resolveSelectedKinds', () => {
@@ -116,6 +144,10 @@ describe('resolveSelectedKinds', () => {
   it('resolves asset kinds through the same generic helper', () => {
     expect(resolveSelectedKinds({ stored: [INVESTMENTS], available: [CASH, INVESTMENTS] })).toEqual([INVESTMENTS]);
   });
+
+  it('includes metals by default and after a filter reset', () => {
+    expect(resolveSelectedKinds({ stored: [], available: [CASH, METALS] })).toEqual([CASH, METALS]);
+  });
 });
 
 describe('buildDisplayPoints', () => {
@@ -133,6 +165,8 @@ describe('buildDisplayPoints', () => {
       liabilitiesByKind: { 'credit-card': -100 },
       liabilitiesTotal: -100,
       netWorth: 900,
+      unvaluedMetalsCount: 0,
+      staleMetalsCount: 0,
     });
   });
 
@@ -150,6 +184,8 @@ describe('buildDisplayPoints', () => {
       liabilitiesByKind: { 'credit-card': -100 },
       liabilitiesTotal: -100,
       netWorth: 5900,
+      unvaluedMetalsCount: 0,
+      staleMetalsCount: 0,
     });
   });
 
@@ -163,6 +199,27 @@ describe('buildDisplayPoints', () => {
     expect(point!.assetsTotal).toBe(1000);
     expect(point!.liabilitiesTotal).toBe(-550);
     expect(point!.netWorth).toBe(450);
+  });
+
+  it('adds metals once and only carries valuation warnings when metals are selected', () => {
+    const points = [
+      buildPoint({
+        date: '2026-01-31',
+        assets: 100,
+        preciousMetals: 250,
+        unvaluedMetalsCount: 1,
+        staleMetalsCount: 2,
+      }),
+    ];
+    const [included] = buildDisplayPoints({
+      points,
+      selectedAssetKinds: ALL_ASSET_KINDS,
+      selectedLiabilityKinds: [],
+    });
+    const [excluded] = buildDisplayPoints({ points, selectedAssetKinds: [CASH], selectedLiabilityKinds: [] });
+
+    expect(included).toMatchObject({ netWorth: 350, unvaluedMetalsCount: 1, staleMetalsCount: 2 });
+    expect(excluded).toMatchObject({ netWorth: 100, unvaluedMetalsCount: 0, staleMetalsCount: 0 });
   });
 });
 

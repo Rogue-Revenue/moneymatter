@@ -361,6 +361,9 @@ export const createTransaction = withTransaction(
     applyAutomations = false,
     ...payload
   }: CreateTransactionParams): Promise<CreateTxResult> => {
+    if (transferNature === TRANSACTION_TRANSFER_NATURE.transfer_to_precious_metals) {
+      throw new ValidationError({ message: t({ key: 'preciousMetals.manageLinkFromHolding' }) });
+    }
     if (applyAutomations) payload.externalData = { ...payload.externalData, applyAutomations: true };
 
     try {

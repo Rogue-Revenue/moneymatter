@@ -189,7 +189,16 @@
     },
     "validators": {
       "invalidCurrencyDecimal": "Enter a valid amount (up to 2 decimal places)",
-      "mustBePositive": "Amount must be positive"
+      "mustBePositive": "Amount must be positive",
+      "preciousMetalsName": "Enter a holding name.",
+      "preciousMetalsPhysical": "Enter a positive weight and purity greater than 0% and at most 100%.",
+      "preciousMetalsCurrency": "Choose a currency.",
+      "preciousMetalsDate": "Enter a valid date.",
+      "preciousMetalsFutureDate": "The date cannot be in the future.",
+      "preciousMetalsQuantity": "Enter a quantity greater than zero.",
+      "preciousMetalsOversell": "Sale quantity exceeds the quantity currently held.",
+      "preciousMetalsAmount": "Enter a non-negative amount or leave it blank if unknown.",
+      "preciousMetalsPrice": "Enter a positive price and a valid date."
     },
     "exchangeCurrency": {
       "fromCurrencyLabel": "From Currency",

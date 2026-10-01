@@ -13,6 +13,7 @@ import UserExchangeRates from '@models/user-exchange-rates.model';
 import UsersCurrencies from '@models/users-currencies.model';
 import { withTransaction } from '@services/common/with-transaction';
 import { API_LAYER_BASE_CURRENCY_CODE } from '@services/exchange-rates/constants';
+import { calculateMetalsBalanceHistory } from '@services/precious-metals/balance-history';
 import { buildUsdRateLookup } from '@services/stats/build-usd-rate-lookup';
 import { calculateVehiclesBalanceHistory } from '@services/stats/calculate-vehicles-balance-history';
 import { calculateVentureBalanceHistory } from '@services/stats/calculate-venture-balance-history';
@@ -363,6 +364,7 @@ export const getCombinedBalanceHistory = async ({
       vehicleValuesByDate,
       portfolioValuesByDate,
       ventureValuesByDate,
+      metalsByDate,
       creditLimitSum,
     ] = await withTransaction(async () => {
       // Shared by every sub-calculator that converts to base currency — fetch once.
@@ -408,6 +410,7 @@ export const getCombinedBalanceHistory = async ({
         calculateVehiclesBalanceHistory({ userId, maxDate, uniqueDates, userBaseCurrencyPromise }),
         calculatePortfolioBalanceHistory({ userId, minDate, maxDate, uniqueDates, userBaseCurrencyPromise }),
         calculateVentureBalanceHistory({ userId, minDate, maxDate, uniqueDates, userBaseCurrencyPromise }),
+        calculateMetalsBalanceHistory({ userId, maxDate, uniqueDates, userBaseCurrencyPromise }),
         includeCreditLimit ? getCreditLimitAdjustment({ userId, accountScope: 'owned' }) : Promise.resolve(0),
       ]);
     })();
@@ -417,7 +420,8 @@ export const getCombinedBalanceHistory = async ({
       (!loansBalanceHistory || loansBalanceHistory.length === 0) &&
       (!vehicleValuesByDate || vehicleValuesByDate.size === 0) &&
       (!portfolioValuesByDate || portfolioValuesByDate.size === 0) &&
-      (!ventureValuesByDate || ventureValuesByDate.size === 0)
+      (!ventureValuesByDate || ventureValuesByDate.size === 0) &&
+      (!metalsByDate || metalsByDate.size === 0)
     ) {
       return [];
     }
@@ -439,6 +443,8 @@ export const getCombinedBalanceHistory = async ({
       const portfoliosBalance = portfolioValuesByDate?.get(dateStr) ?? 0;
       const venturesBalance = ventureValuesByDate?.get(dateStr) ?? 0;
       const loansBalance = loansBalanceByDate.get(dateStr) ?? 0;
+      const metals = metalsByDate?.get(dateStr);
+      const metalsBalance = metals?.value ?? 0;
 
       return {
         date: dateStr,
@@ -447,7 +453,11 @@ export const getCombinedBalanceHistory = async ({
         venturesBalance,
         vehiclesBalance,
         loansBalance,
-        totalBalance: accountsBalance + portfoliosBalance + venturesBalance + vehiclesBalance + loansBalance,
+        metalsBalance,
+        unvaluedMetalsCount: metals?.unvaluedMetalsCount ?? 0,
+        staleMetalsCount: metals?.staleMetalsCount ?? 0,
+        totalBalance:
+          accountsBalance + portfoliosBalance + venturesBalance + vehiclesBalance + loansBalance + metalsBalance,
       };
     });
 

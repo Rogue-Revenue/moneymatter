@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/vue-query';
 import { storeToRefs } from 'pinia';
 import { type Ref, computed, watch } from 'vue';
 
+import { getMetalsValuationStatus } from '../net-worth-composition';
 import {
   type NetWorthIncludeSettings,
   computeEndNetWorth,
@@ -45,6 +46,9 @@ export function useNetWorthData({
   });
 
   const series = computed(() => data.value ?? []);
+  const metalsValuationStatus = computed(() =>
+    getMetalsValuationStatus({ points: series.value, includeMetals: settings.value.includeMetals }),
+  );
 
   const startNetWorth = computed(() =>
     computeStartNetWorth({ series: series.value, settings: settings.value, period: selectedPeriod() }),
@@ -74,6 +78,7 @@ export function useNetWorthData({
   const isEmpty = computed(() => series.value.length === 0);
 
   return {
+    metalsValuationStatus,
     startNetWorth,
     endNetWorth,
     currentDelta,

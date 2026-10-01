@@ -49,9 +49,11 @@ export function useManageTransactionDialog() {
   });
 
   const isCompactDialog = computed(() =>
-    [TRANSACTION_TRANSFER_NATURE.transfer_to_portfolio, TRANSACTION_TRANSFER_NATURE.transfer_to_venture].includes(
-      dialogProps.value.transaction?.transferNature as TRANSACTION_TRANSFER_NATURE,
-    ),
+    [
+      TRANSACTION_TRANSFER_NATURE.transfer_to_portfolio,
+      TRANSACTION_TRANSFER_NATURE.transfer_to_venture,
+      TRANSACTION_TRANSFER_NATURE.transfer_to_precious_metals,
+    ].includes(dialogProps.value.transaction?.transferNature as TRANSACTION_TRANSFER_NATURE),
   );
 
   // Derive externality from the actual account record rather than tx.accountType.

@@ -20,7 +20,8 @@
           "portfolios": "Portfolios",
           "ventures": "Ventures",
           "vehicles": "Vehicles",
-          "loans": "Loans"
+          "loans": "Loans",
+          "metals": "Precious metals"
         },
         "tooltip": {
           "accounts": "Accounts:",
@@ -28,7 +29,8 @@
           "total": "Total:",
           "ventures": "Ventures:",
           "vehicles": "Vehicles:",
-          "loans": "Loans:"
+          "loans": "Loans:",
+          "metals": "Precious metals"
         },
         "today": "Today",
         "vsPreviousPeriod": "vs previous period",
@@ -73,7 +75,8 @@
           "loans": "Loans",
           "loansTooltip": "When on, your outstanding loan balances are subtracted from the total (true net worth). When off, loans are ignored so the total shows assets only.",
           "allIncluded": "All components",
-          "excluding": "Excluding {items}"
+          "excluding": "Excluding {items}",
+          "metals": "Precious metals"
         },
         "projection": {
           "summary": "{amount} projected · {count} planned entry through {date} | {amount} projected · {count} planned entries through {date}"
@@ -146,18 +149,24 @@
         "components": {
           "ventures": "Ventures",
           "vehicles": "Vehicles",
-          "loans": "Loans"
+          "loans": "Loans",
+          "metals": "Precious metals"
         },
         "settings": {
           "title": "Include in net worth",
           "loans": "Loans",
           "vehicles": "Vehicles",
-          "ventures": "Ventures"
+          "ventures": "Ventures",
+          "metals": "Precious metals"
         },
         "trendTooltip": {
           "change": "Change",
           "netWorth": "Net worth",
           "noData": "No data for this period"
+        },
+        "metalsValuation": {
+          "partial": "Some precious metals could not be valued. Totals and changes shown are partial.",
+          "stale": "Some precious metal values use stale prices."
         }
       },
       "creditUtilization": {
