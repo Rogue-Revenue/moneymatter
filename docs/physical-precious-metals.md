@@ -8,7 +8,7 @@ Opening lots and purchases add inventory; sales consume lots in FIFO order by ev
 
 Events cannot be dated in the future or create a negative inventory balance at any point in the ledger. Quantities and fine mass use decimal arithmetic, and monetary fields use the application's `Money` representation.
 
-An event can link to one existing eligible cash transaction with the same owner, currency, direction, and amount. Linking does not create another cash transaction or change the account balance; it identifies the cash flow as a transfer to or from physical metals. Opening events do not link cash. Unlink before editing or deleting a linked cash transaction. The same cash transaction cannot fund multiple tracked assets.
+An event can link to one existing eligible cash transaction with the same owner, currency, direction, and amount. Imported bank transactions must be settled; pending or held payments cannot be linked until booked. Linking does not create another cash transaction or change the account balance; it identifies the cash flow as a transfer to or from physical metals. Opening events do not link cash. Unlink before editing or deleting a linked cash transaction. The same cash transaction cannot fund multiple tracked assets.
 
 ## Quotes and valuation
 

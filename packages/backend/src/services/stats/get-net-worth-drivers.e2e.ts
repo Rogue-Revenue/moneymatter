@@ -1060,15 +1060,14 @@ describe('GET /stats/net-worth-drivers', () => {
   describe('currency conversion', () => {
     // Any suite that converts a past-dated amount makes the rate provider persist its
     // entire mocked basket at that date, and ExchangeRates survives per-test truncation.
-    // Such a row predates the report window, where it still qualifies as the pre-window
-    // anchor and hands a real rate to tests that require none. Clear it so the tests
-    // below that assert a 1:1 fallback genuinely start with no rate.
+    // Clear both pre-window anchors and observations within the report window so each
+    // fixture controls its rates, including tests that require none for a 1:1 fallback.
     beforeEach(async () => {
       await ExchangeRates.destroy({
         where: {
           baseCode: API_LAYER_BASE_CURRENCY_CODE,
           quoteCode: global.BASE_CURRENCY_CODE,
-          date: { [Op.lt]: new Date(`${JAN.start}T00:00:00.000Z`) },
+          date: { [Op.lte]: new Date(`${FEB.end}T23:59:59.999Z`) },
         },
       });
     });

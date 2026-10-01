@@ -9,6 +9,7 @@ import PreciousMetalHoldings from '@models/precious-metals/holdings.model';
 import RefundTransactions from '@models/refund-transactions.model';
 import TransactionSplits from '@models/transaction-splits.model';
 import { findOneTransaction } from '@models/transactions-query';
+import { hasSettledStatus } from '@services/bank-data-providers/enablebanking/utils/transaction-metadata';
 import { assertNotAlreadyLinked, snapshotOriginalTransactionState } from '@services/common/transaction-linking';
 import { withTransaction } from '@services/common/with-transaction';
 import { Op } from 'sequelize';
@@ -64,6 +65,7 @@ export const linkMetalEvent = withTransaction(
     if (
       tx.transferNature !== TRANSACTION_TRANSFER_NATURE.not_transfer ||
       tx.isPlanned ||
+      !hasSettledStatus({ tx }) ||
       tx.refundLinked ||
       tx.transferId ||
       tx.externalData?.balanceAdjustment
